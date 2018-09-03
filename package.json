@@ -1,0 +1,25 @@
+{
+	"name": "@cortys/homepage",
+	"version": "1.0.0",
+	"description": "Personal homepage.",
+	"dependencies": {
+		"browser-sync": "^2.24.7",
+		"harp": "^0.27.0"
+	},
+	"devDependencies": {},
+	"scripts": {
+		"serve": "harp server & browser-sync start --proxy 'localhost:9000' --files 'public/**/*'",
+		"compile": "harp compile",
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Cortys/homepage.git"
+	},
+	"author": "Clemens Damke",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/Cortys/homepage/issues"
+	},
+	"homepage": "https://github.com/Cortys/homepage#readme"
+}
