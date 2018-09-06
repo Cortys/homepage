@@ -1,0 +1,13 @@
+{
+	"root": true,
+	"extends": "cortys",
+	"env": {
+		"browser": true,
+		"node": false
+	},
+	"globals": {
+		"process": false,
+		"__dirname": false,
+		"__filename": false
+	}
+}

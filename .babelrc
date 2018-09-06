@@ -1,0 +1,14 @@
+{
+	"presets": [
+		["env", {
+			"targets": {
+				"browsers": [
+					"last 10 Chrome versions",
+					"last 10 Firefox versions",
+					"last 4 Safari versions",
+					"last 4 Edge versions"
+				]
+			}
+		}]
+	]
+}
