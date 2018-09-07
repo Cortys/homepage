@@ -29,4 +29,8 @@ node_modules
 
 # Parcel
 dist
+dist-dev
 .cache
+
+# FTP Sync
+.ftpconfig
