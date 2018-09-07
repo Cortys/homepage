@@ -32,5 +32,6 @@ dist
 dist-dev
 .cache
 
-# FTP Sync
+# FTP
 .ftpconfig
+.ftpignore

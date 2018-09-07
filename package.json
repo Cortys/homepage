@@ -4,7 +4,6 @@
 	"description": "Personal homepage.",
 	"dependencies": {
 		"@polymer/lit-element": "^0.5.2",
-		"@webcomponents/webcomponentsjs": "^2.1.1",
 		"node-sass": "^4.9.3",
 		"parcel-bundler": "^1.9.7",
 		"snapsvg": "^0.4.0"
@@ -15,7 +14,7 @@
 		"eslint": "^5.5.0",
 		"eslint-config-cortys": "^2.0.0",
 		"parcel-plugin-eslint": "^1.0.4",
-		"parcel-plugin-webcomponents": "^1.0.0"
+		"parcel-plugin-webcomponents": "^1.0.1"
 	},
 	"scripts": {
 		"start": "parcel --out-dir dist-dev src/index.html",
@@ -27,6 +26,5 @@
 	"bugs": {
 		"url": "https://github.com/Cortys/homepage/issues"
 	},
-	"homepage": "https://github.com/Cortys/homepage#readme",
-	"main": "index.js"
+	"homepage": "https://github.com/Cortys/homepage#readme"
 }
