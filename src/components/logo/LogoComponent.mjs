@@ -1,101 +1,71 @@
 import { LitElement, html } from "@polymer/lit-element";
-import Snap from "snapsvg";
 
 import logoURL from "./logo.svg";
-
-const mina = window.mina;
 
 export default class LogoComponent extends LitElement {
 	_render() {
 		return html`
 			<style>
+				@keyframes logoPulse {
+					from {
+						transform: scale(1);
+					}
+					to {
+						transform: scale(1.3);
+					}
+				}
+
+				@keyframes logoRotate {
+					from {
+						transform: rotate(0deg);
+					}
+					to {
+						transform: rotate(360deg);
+					}
+				}
+
 				:host {
 					display: block;
+					width: 460px;
+					height: 460px
 				}
 
 				#logo {
-					width: 500px;
-					height: 500px;
+					position: relative;
+					width: 100%;
+					height: 100%;
+					animation: logoPulse 10s cubic-bezier(.87,-.41,.19,1.44) infinite alternate;
+					will-change: transform;
+				}
+
+				#front, #back {
+					position: absolute;
+					will-change: transform;
+				}
+
+				#front {
+					top: 25%;
+					left: 25%;
+					width: 50%;
+					height: 50%;
+					animation: logoRotate 5s linear infinite;
+				}
+
+				#back {
+					top: 24%;
+					left: 24%;
+					width: 52%;
+					height: 52%;
+					opacity: 0.5;
+					animation: logoRotate 5s linear infinite reverse;
+
 				}
 			</style>
-			<svg id="logo"></svg>
+			<div id="logo">
+				<img id="back" src="${logoURL}">
+				<img id="front" src="${logoURL}">
+			</div>
 		`;
-	}
-
-	_didRender() {
-		const container = new Snap(this.shadowRoot.querySelector("#logo"));
-
-		Snap.load(logoURL, ctx => {
-			const logo = ctx.select("#svg");
-			const g = container.g();
-			const full = logo.select("#full");
-			const half = full.clone();
-			const door = full.clone();
-
-			function a() {
-				let done = false;
-				const call = function() {
-					this.transform(this.data("before"));
-					if(done)
-						a();
-					else
-						done = true;
-				};
-
-				full.data("before", full.attr("transform"));
-				half.data("before", half.attr("transform"));
-				full.animate({ transform: `${full.attr("transform")}r360,250,250` }, 5000, call);
-				half.animate({ transform: `${half.attr("transform")}r-360,250,250` }, 5000, call);
-			}
-
-			function b(t) {
-				logo.animate({ transform: `t-137,-135S${t ? 1 : 1.25}` }, 20000, mina.elastic, () => {
-					b(!t);
-				});
-			}
-
-			logo.prepend(half);
-			logo.append(door);
-			g.append(logo);
-
-			logo.attr({ cursor: "pointer" });
-			half.attr({ opacity: 0.5 });
-
-			full.transform("t135,135");
-			half.transform("t135,135r270,250,250s1.034,1.034,250,250");
-
-			a();
-			b();
-
-			door.transform("T135,135S0");
-			door.attr({ fill: "#151515" });
-
-			const enter = g.circle(250, 250, 50);
-
-			enter.attr({ fill: "#ffffff", opacity: 0, cursor: "pointer" });
-
-			function show() {
-				door.animate({ transform: "T135,135S1.2" }, 100, mina.linear);
-				enter.animate({ opacity: 1 }, 100);
-			}
-
-			const stopped = false;
-
-			function hide() {
-				if(stopped)
-					return;
-				door.animate({ transform: "T135,135S0" }, 100, mina.linear);
-				enter.animate({ opacity: 0 }, 100);
-			}
-
-			g.mouseover(show);
-			g.touchstart(show);
-			g.mouseout(hide);
-			g.touchend(hide);
-			g.touchcancel(hide);
-
-			container.append(g);
-		});
 	}
 }
 
