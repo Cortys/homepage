@@ -35,3 +35,4 @@ dist-dev
 # FTP
 .ftpconfig
 .ftpignore
+.ftpenv

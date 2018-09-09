@@ -17,7 +17,8 @@
 	},
 	"scripts": {
 		"start": "parcel --out-dir dist-dev src/index.html",
-		"build": "rm -rf ./dist; parcel build src/index.html --public-url /homepage"
+		"build": "rm -rf ./dist; parcel build src/index.html --public-url /homepage",
+		"deploy": "bash ./deploy.sh"
 	},
 	"repository": "git+https://github.com/Cortys/homepage.git",
 	"author": "Clemens Damke",
