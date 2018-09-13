@@ -2,7 +2,7 @@ import { LitElement, html } from "@polymer/lit-element";
 
 import logoURL from "./logo.svg";
 
-export default class LogoComponent extends LitElement {
+class LogoComponent extends LitElement {
 	_render() {
 		return html`
 			<style>
@@ -11,7 +11,7 @@ export default class LogoComponent extends LitElement {
 						transform: scale(1);
 					}
 					to {
-						transform: scale(1.3);
+						transform: scale(1.15);
 					}
 				}
 
@@ -27,15 +27,19 @@ export default class LogoComponent extends LitElement {
 				:host {
 					display: block;
 					width: 460px;
-					height: 460px
+					height: 460px;
+					overflow: hidden;
 				}
 
 				#logo {
+					display: block;
 					position: relative;
 					width: 100%;
 					height: 100%;
-					animation: logoPulse 10s cubic-bezier(.87,-.41,.19,1.44) infinite alternate;
+					animation: logoPulse 5s cubic-bezier(.87,-.41,.19,1.44) infinite alternate;
 					will-change: transform;
+					overflow: hidden;
+					pointer-events: none;
 				}
 
 				#front, #back {

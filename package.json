@@ -5,7 +5,9 @@
 	"dependencies": {
 		"@polymer/lit-element": "^0.5.2",
 		"node-sass": "^4.9.3",
-		"parcel-bundler": "^1.9.7"
+		"parcel-bundler": "^1.9.7",
+		"three": "^0.96.0",
+		"three-orbitcontrols": "^2.1.2"
 	},
 	"devDependencies": {
 		"babel-core": "^6.26.3",

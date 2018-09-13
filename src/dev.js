@@ -1,5 +1,3 @@
-"use strict";
-
 // Reload page when a component is redefined in a dev environment:
 if(process.env.NODE_ENV === "development") {
 	const define = window.customElements.define;
