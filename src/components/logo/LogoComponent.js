@@ -36,7 +36,7 @@ class LogoComponent extends LitElement {
 					position: relative;
 					width: 100%;
 					height: 100%;
-					animation: logoPulse 5s cubic-bezier(.87,-.41,.19,1.44) infinite alternate;
+					animation: logoPulse 10s ease-in-out infinite alternate;
 					will-change: transform;
 					overflow: hidden;
 					pointer-events: none;
@@ -52,7 +52,7 @@ class LogoComponent extends LitElement {
 					left: 25%;
 					width: 50%;
 					height: 50%;
-					animation: logoRotate 5s linear infinite;
+					animation: logoRotate 20s linear infinite;
 				}
 
 				#back {

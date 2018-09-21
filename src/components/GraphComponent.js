@@ -30,9 +30,8 @@ class GraphComponent extends LitElement {
 		const wireframe = new THREE.LineSegments(geometry, wireMaterial);
 
 		mesh.add(wireframe);
-
-		const ambient = new THREE.AmbientLight(0xffffff, 1);
-		const point = new THREE.PointLight(0xc42c2d, 0.3);
+		const ambient = new THREE.AmbientLight(0x2c37c4, 1);
+		const point = new THREE.PointLight(0xc42c2d, 1);
 
 		point.position.z = 10;
 
@@ -44,9 +43,9 @@ class GraphComponent extends LitElement {
 		const clock = new THREE.Clock();
 		const axis = new THREE.Vector3(0, 0, 1);
 
-		geometry.vertices.forEach(v => v.applyAxisAngle(axis, (1 + v.length()) ** 2));
+		geometry.vertices.forEach(v => v.applyAxisAngle(axis, -Math.exp(v.length() ** -0.5)));
 
-		const randomOffsets = geometry.vertices.map(v => (1 + v.length()) * Math.random() * 0.005);
+		const randomOffsets = geometry.vertices.map(v => (1 + v.length()) * Math.random() * 0.01);
 
 		this.renderer = renderer;
 
