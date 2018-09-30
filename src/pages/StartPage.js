@@ -23,7 +23,10 @@ export default class StartPage extends LitElement {
 				}
 
 				logo-component {
-					max-width: 100vw;
+					min-width: 150px;
+					min-height: 150px;
+					width: 30vw;
+					max-width: 460px;
 					max-height: 100vh;
 				}
 

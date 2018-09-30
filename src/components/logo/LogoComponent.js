@@ -40,6 +40,7 @@ class LogoComponent extends LitElement {
 					will-change: transform;
 					overflow: hidden;
 					pointer-events: none;
+					user-select: none;
 				}
 
 				#front, #back {
@@ -52,7 +53,7 @@ class LogoComponent extends LitElement {
 					left: 25%;
 					width: 50%;
 					height: 50%;
-					animation: logoRotate 20s linear infinite;
+					animation: logoRotate 40s linear infinite;
 				}
 
 				#back {
@@ -61,7 +62,7 @@ class LogoComponent extends LitElement {
 					width: 52%;
 					height: 52%;
 					opacity: 0.5;
-					animation: logoRotate 5s linear infinite reverse;
+					animation: logoRotate 20s linear infinite reverse;
 
 				}
 			</style>
