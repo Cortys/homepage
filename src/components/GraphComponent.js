@@ -6,9 +6,14 @@ const enableControls = true;
 const objectRadius = 3;
 const cameraDepth = 2;
 const noiseIntensity = 0.04;
-const rippleIntensity = 0.1;
+const rippleIntensity = 0.03;
+const newRippleMinDistance = 20;
+const newRippleMinDistanceSquared = newRippleMinDistance ** 2;
+const newRippleMinDelay = 0.05;
+const removeRippleThreshold = 0.005;
+const logRemoveRippleThreshold = Math.log(removeRippleThreshold);
 const waveIntensity = 0.05;
-const maxDepth = cameraDepth + noiseIntensity + rippleIntensity + waveIntensity;
+const maxDepth = cameraDepth + noiseIntensity + 2 * rippleIntensity + waveIntensity;
 
 function computeCameraSettings({ width, height }) {
 	const aspect = width / height;
@@ -43,9 +48,9 @@ function createScene() {
 
 	// Lights:
 
-	const ambient = new THREE.AmbientLight(0x2c37c4, 1);
-	const point = new THREE.PointLight(0x2c37c4, 0.1);
-	const spot = new THREE.SpotLight(0xc42c2d, 1);
+	const ambient = new THREE.AmbientLight(0x2c37c4, 0.1);
+	const point = new THREE.PointLight(0x2c37c4, 0.5);
+	const spot = new THREE.SpotLight(0xc42c2d, 1.5);
 
 	point.position.z = 10;
 	spot.position.z = 10;
@@ -78,7 +83,7 @@ class GraphComponent extends LitElement {
 	constructor() {
 		super();
 
-		// const ripples = [];
+		const ripples = [];
 		let cursorPosition = null;
 		let size = getSize();
 
@@ -108,10 +113,17 @@ class GraphComponent extends LitElement {
 		requestAnimationFrame(function animate() {
 			requestAnimationFrame(animate);
 
-			const delta = clock.getDelta();
-			const time = clock.getElapsedTime();
+			const Δt = clock.getDelta();
+			const time = clock.elapsedTime;
 
-			mesh.rotateZ(-delta * Math.PI / 20);
+			const cutoffIndex = ripples.findIndex(({ time: rippleTime }) => {
+				return logRemoveRippleThreshold > -2 * (time - rippleTime);
+			});
+
+			if(cutoffIndex >= 0)
+				ripples.splice(cutoffIndex);
+
+			mesh.rotateZ(-Δt * Math.PI / 20);
 
 			geometry.vertices.forEach((v, i) => {
 				const projected = v.clone().applyAxisAngle(zAxis, mesh.rotation.z).project(camera);
@@ -122,8 +134,21 @@ class GraphComponent extends LitElement {
 
 				const distance = cursorPosition ? cursorPosition.distanceToSquared(canvasPosition) : Infinity;
 
+				const ripple = ripples.reduce((acc, { origin, time: rippleTime }) => {
+					const Δd2 = canvasPosition.distanceToSquared(origin);
+					const Δd = Math.sqrt(Δd2);
+					const Δt = time - rippleTime;
+					const sinVal = Δd / 50 - Δt * 20;
+
+					if(sinVal >= 0)
+						return acc;
+
+					return acc + Math.exp(-Δd2 / 50000 - 2 * Δt) * Math.sin(sinVal);
+				}, 0);
+
 				v.z = noise[i]
 					+ -rippleIntensity * Math.exp(-distance / 5000)
+					+ -rippleIntensity * ripple
 					+ waveIntensity * Math.max(v.lengthSq(), 1) ** -1
 					* Math.sin(v.length() * 6 - time * Math.PI / 5);
 			});
@@ -144,6 +169,16 @@ class GraphComponent extends LitElement {
 
 		window.addEventListener("mousemove", e => {
 			cursorPosition = new THREE.Vector2(e.clientX, e.clientY);
+
+			const time = clock.elapsedTime;
+			const [Δd, Δt] = ripples.length > 0
+				? [cursorPosition.distanceToSquared(ripples[0].origin), time - ripples[0].time]
+				: [Infinity, Infinity];
+
+			if(Δd >= newRippleMinDistanceSquared && Δt >= newRippleMinDelay)
+				ripples.unshift({
+					origin: cursorPosition, time
+				});
 		}, {
 			passive: true,
 			capture: true
