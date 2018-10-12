@@ -1,64 +1,107 @@
 import { LitElement, html } from "@polymer/lit-element";
 import * as THREE from "three";
-// import OrbitControls from "three-orbitcontrols";
+import OrbitControls from "three-orbitcontrols";
+
+const enableControls = true;
+const objectRadius = 3;
+const cameraDepth = 2;
+const noiseIntensity = 0.04;
+const rippleIntensity = 0.1;
+const waveIntensity = 0.05;
+const maxDepth = cameraDepth + noiseIntensity + rippleIntensity + waveIntensity;
+
+function computeCameraSettings({ width, height }) {
+	const aspect = width / height;
+	const fov = 360 * Math.atan(objectRadius * Math.cos(Math.atan(aspect)) / maxDepth) / Math.PI;
+	const a = [fov, aspect];
+
+	return {
+		fov, aspect,
+		[Symbol.iterator]: () => a[Symbol.iterator]()
+	};
+}
+
+function createScene() {
+	const scene = new THREE.Scene();
+
+	// Materials:
+
+	const material = new THREE.MeshStandardMaterial({ color: 0x151515, flatShading: true });
+	const wireMaterial = new THREE.MeshStandardMaterial({ color: 0x202020, wireframe: true });
+
+	// Geometry:
+
+	const geometry = new THREE.RingGeometry(-1, objectRadius, 64, 80);
+	const wireframe = new THREE.LineSegments(geometry, wireMaterial);
+
+	const mesh = new THREE.Mesh(geometry, material);
+	const axis = new THREE.Vector3(0, 0, 1);
+
+	geometry.vertices.forEach(v => v.applyAxisAngle(axis, -Math.exp(v.length() ** -0.5)));
+
+	mesh.add(wireframe);
+
+	// Lights:
+
+	const ambient = new THREE.AmbientLight(0x2c37c4, 1);
+	const point = new THREE.PointLight(0x2c37c4, 0.1);
+	const spot = new THREE.SpotLight(0xc42c2d, 1);
+
+	point.position.z = 10;
+	spot.position.z = 10;
+	spot.angle = Math.PI / 15;
+	spot.penumbra = 0.5;
+	spot.decay = 2;
+
+	scene.add(ambient);
+	scene.add(point);
+	scene.add(spot);
+	scene.add(mesh);
+
+	return { scene, geometry, mesh };
+}
+
+function createNoise(geometry) {
+	const normalizedIntensity = noiseIntensity / (1 + objectRadius);
+
+	return geometry.vertices.map(v => (1 + v.length()) * Math.random() * normalizedIntensity);
+}
+
+function getSize() {
+	return {
+		width: window.innerWidth,
+		height: window.innerHeight
+	};
+}
 
 class GraphComponent extends LitElement {
 	constructor() {
 		super();
 
-		let size = {
-			width: window.innerWidth,
-			height: window.innerHeight
-		};
+		// const ripples = [];
 		let cursorPosition = null;
+		let size = getSize();
 
-		const aspect = size.width / size.height;
-		const fov = 360 * Math.atan(3 * Math.cos(Math.atan(aspect)) / 2.05) / Math.PI;
-		const scene = new THREE.Scene();
-		const camera = new THREE.PerspectiveCamera(fov, aspect, 0.1, 6);
+		const { scene, geometry, mesh } = createScene();
+
+		const camera = new THREE.PerspectiveCamera(...computeCameraSettings(size), 0.1, 6);
 		const renderer = new THREE.WebGLRenderer({
 			antialias: true,
 			alpha: true
 		});
-		const zAxis = new THREE.Vector3(0, 0, 1);
 
 		renderer.setPixelRatio(window.devicePixelRatio);
 		renderer.setSize(size.width, size.height);
 
-		// const controls = new OrbitControls(camera, renderer.domElement);
-		//
-		// console.log(controls);
+		if(enableControls)
+			new OrbitControls(camera, renderer.domElement); // eslint-disable-line no-new
 
-		const geometry = new THREE.RingGeometry(-1, 3, 64, 80);
-		const material = new THREE.MeshStandardMaterial({ color: 0x151515, flatShading: true });
-		const mesh = new THREE.Mesh(geometry, material);
-
-		const wireMaterial = new THREE.MeshStandardMaterial({ color: 0x202020, wireframe: true });
-		const wireframe = new THREE.LineSegments(geometry, wireMaterial);
-
-		mesh.add(wireframe);
-		const ambient = new THREE.AmbientLight(0x2c37c4, 1);
-		const point = new THREE.PointLight(0x2c37c4, 0.1);
-		const spot = new THREE.SpotLight(0xc42c2d, 1);
-
-		point.position.z = 10;
-		spot.position.z = 10;
-		spot.angle = Math.PI / 15;
-		spot.penumbra = 0.5;
-		spot.decay = 2;
-
-		scene.add(ambient);
-		scene.add(point);
-		scene.add(spot);
-		scene.add(mesh);
 		camera.position.z = 2;
 
+		const zAxis = new THREE.Vector3(0, 0, 1);
 		const clock = new THREE.Clock();
-		const axis = new THREE.Vector3(0, 0, 1);
 
-		geometry.vertices.forEach(v => v.applyAxisAngle(axis, -Math.exp(v.length() ** -0.5)));
-
-		const randomOffsets = geometry.vertices.map(v => (1 + v.length()) * Math.random() * 0.01);
+		const noise = createNoise(geometry);
 
 		this.renderer = renderer;
 
@@ -67,7 +110,6 @@ class GraphComponent extends LitElement {
 
 			const delta = clock.getDelta();
 			const time = clock.getElapsedTime();
-			// const delta = 0;
 
 			mesh.rotateZ(-delta * Math.PI / 20);
 
@@ -78,11 +120,11 @@ class GraphComponent extends LitElement {
 				canvasPosition.x = (canvasPosition.x + 1) * size.width / 2;
 				canvasPosition.y = -(canvasPosition.y - 1) * size.height / 2;
 
-				const distance = cursorPosition ? cursorPosition.distanceToSquared(canvasPosition) : 0;
+				const distance = cursorPosition ? cursorPosition.distanceToSquared(canvasPosition) : Infinity;
 
-				v.z = randomOffsets[i]
-					+ (distance > 0 ? -0.1 * Math.exp(-distance / 5000) : 0)
-					+ 0.05 * Math.max(v.lengthSq(), 1) ** -1
+				v.z = noise[i]
+					+ -rippleIntensity * Math.exp(-distance / 5000)
+					+ waveIntensity * Math.max(v.lengthSq(), 1) ** -1
 					* Math.sin(v.length() * 6 - time * Math.PI / 5);
 			});
 			geometry.verticesNeedUpdate = true;
@@ -91,22 +133,13 @@ class GraphComponent extends LitElement {
 		});
 
 		window.addEventListener("resize", () => {
-			size = {
-				width: window.innerWidth,
-				height: window.innerHeight
-			};
+			size = getSize();
 
-			const aspect = size.width / size.height;
-			const fov = 360 * Math.atan(3 * Math.cos(Math.atan(aspect)) / 2.05) / Math.PI;
-
-			camera.aspect = aspect;
-			camera.fov = fov;
+			Object.assign(camera, computeCameraSettings(size));
 			camera.updateProjectionMatrix();
+			renderer.setSize(size.width, size.height);
 
 			cursorPosition = null;
-
-			renderer.setPixelRatio(window.devicePixelRatio);
-			renderer.setSize(size.width, size.height);
 		}, false);
 
 		window.addEventListener("mousemove", e => {
