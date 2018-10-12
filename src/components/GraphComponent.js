@@ -1,8 +1,7 @@
 import { LitElement, html } from "@polymer/lit-element";
 import * as THREE from "three";
-import OrbitControls from "three-orbitcontrols";
+// import OrbitControls from "three-orbitcontrols";
 
-const enableControls = true;
 const objectRadius = 3;
 const cameraDepth = 2;
 const noiseIntensity = 0.04;
@@ -98,8 +97,7 @@ class GraphComponent extends LitElement {
 		renderer.setPixelRatio(window.devicePixelRatio);
 		renderer.setSize(size.width, size.height);
 
-		if(enableControls)
-			new OrbitControls(camera, renderer.domElement); // eslint-disable-line no-new
+		// new OrbitControls(camera, renderer.domElement); // eslint-disable-line no-new
 
 		camera.position.z = 2;
 
