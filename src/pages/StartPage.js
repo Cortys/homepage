@@ -1,6 +1,7 @@
 import { LitElement, html } from "@polymer/lit-element";
 import "../components/logo/LogoComponent";
 import "../components/GraphComponent";
+import "../components/MenuComponent";
 
 export default class StartPage extends LitElement {
 	render() {
@@ -30,17 +31,17 @@ export default class StartPage extends LitElement {
 					max-height: 100vh;
 				}
 
-				#title {
+				menu-component {
 					position: fixed;
 					text-align: center;
 					width: 100%;
-					bottom: 40px;
+					bottom: 100px;
 					cursor: default;
 				}
 			</style>
 			<graph-component></graph-component>
 			<logo-component></logo-component>
-			<div id="title">Content soon(ish)&hellip; Maybe.</div>
+			<menu-component></menu-component>
 		`;
 	}
 }
