@@ -183,7 +183,7 @@ class GraphComponent extends LitElement {
 		});
 	}
 
-	_render() {
+	render() {
 		return html`
 			<style>
 				:host {
@@ -203,7 +203,7 @@ class GraphComponent extends LitElement {
 		`;
 	}
 
-	_didRender() {
+	updated() {
 		const graphElement = this.shadowRoot.querySelector("#graph");
 
 		graphElement.appendChild(this.renderer.domElement);

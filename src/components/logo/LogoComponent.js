@@ -3,7 +3,7 @@ import { LitElement, html } from "@polymer/lit-element";
 import logoURL from "./logo.svg";
 
 class LogoComponent extends LitElement {
-	_render() {
+	render() {
 		return html`
 			<style>
 				@keyframes logoPulse {

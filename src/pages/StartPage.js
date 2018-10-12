@@ -3,7 +3,7 @@ import "../components/logo/LogoComponent";
 import "../components/GraphComponent";
 
 export default class StartPage extends LitElement {
-	_render() {
+	render() {
 		return html`
 			<style>
 				:host {
