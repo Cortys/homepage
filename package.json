@@ -2,31 +2,32 @@
 	"name": "@cortys/homepage",
 	"version": "1.0.0",
 	"description": "Personal homepage.",
-	"dependencies": {
-		"@polymer/lit-element": "^0.6.2",
-		"node-sass": "^4.9.3",
-		"parcel-bundler": "^1.10.3",
-		"three": "^0.96.0",
-		"three-orbitcontrols": "^2.1.2"
-	},
-	"devDependencies": {
-		"babel-core": "^6.26.3",
-		"babel-preset-env": "^1.7.0",
-		"eslint": "^5.5.0",
-		"eslint-config-cortys": "^2.0.0",
-		"parcel-plugin-eslint": "^1.0.4",
-		"parcel-plugin-webcomponents": "^1.0.1"
-	},
-	"scripts": {
-		"start": "parcel --out-dir dist-dev src/index.html",
-		"build": "rm -rf ./dist; parcel build src/index.html --public-url /homepage",
-		"deploy": "bash ./deploy.sh"
-	},
 	"repository": "git+https://github.com/Cortys/homepage.git",
 	"author": "Clemens Damke",
 	"license": "MIT",
 	"bugs": {
 		"url": "https://github.com/Cortys/homepage/issues"
 	},
-	"homepage": "https://github.com/Cortys/homepage#readme"
+	"homepage": "https://github.com/Cortys/homepage#readme",
+	"scripts": {
+		"start": "parcel --out-dir dist-dev src/index.html",
+		"build": "rm -rf ./dist; parcel build src/index.html --public-url /homepage",
+		"deploy": "bash ./deploy.sh",
+		"lint": "eslint src"
+	},
+	"dependencies": {
+		"lit-element": "^2.1.0",
+		"node-sass": "^4.12.0",
+		"parcel-bundler": "^1.12.3",
+		"three": "^0.107.0",
+		"three-orbitcontrols": "^2.102.2"
+	},
+	"devDependencies": {
+		"babel-core": "^6.26.3",
+		"babel-preset-env": "^1.7.0",
+		"eslint": "^6.1.0",
+		"eslint-config-cortys": "^2.1.1",
+		"parcel-plugin-eslint": "^1.0.7",
+		"parcel-plugin-webcomponents": "^1.2.1"
+	}
 }

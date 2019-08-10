@@ -10,7 +10,7 @@
 		"__dirname": false,
 		"__filename": false
 	},
-	"overrides": {
+	"overrides": [{
 		"files": ["src/**/*.js"],
 		"parserOptions": {
 			"sourceType": "module"
@@ -18,5 +18,5 @@
 		"rules": {
 			"import/no-commonjs": "error"
 		}
-	}
+	}]
 }

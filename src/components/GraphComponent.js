@@ -1,4 +1,4 @@
-import { LitElement, html } from "@polymer/lit-element";
+import { LitElement, html } from "lit-element";
 import * as THREE from "three";
 // import OrbitControls from "three-orbitcontrols";
 
