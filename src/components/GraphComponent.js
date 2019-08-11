@@ -1,11 +1,13 @@
 import { LitElement, html } from "lit-element";
 import * as THREE from "three";
-// import OrbitControls from "three-orbitcontrols";
+import OrbitControls from "three-orbitcontrols";
 
-const objectRadius = 3;
+const objectRadius = 6;
+const radiusSegments = 160;
 const cameraDepth = 2;
-const noiseIntensity = 0.04;
+const noiseIntensity = 0.08;
 const rippleIntensity = 0.03;
+const dentNormalize = 5000;
 const newRippleMinDistance = 20;
 const newRippleMinDistanceSquared = newRippleMinDistance ** 2;
 const newRippleMinDelay = 0.05;
@@ -13,10 +15,11 @@ const removeRippleThreshold = 0.005;
 const logRemoveRippleThreshold = Math.log(removeRippleThreshold);
 const waveIntensity = 0.05;
 const maxDepth = cameraDepth + noiseIntensity + 2 * rippleIntensity + waveIntensity;
+const noCursorPosition = new THREE.Vector2(-1, -1);
 
 function computeCameraSettings({ width, height }) {
 	const aspect = width / height;
-	const fov = 360 * Math.atan(objectRadius * Math.cos(Math.atan(aspect)) / maxDepth) / Math.PI;
+	const fov = 360 * Math.atan(objectRadius * 0.5 * Math.cos(Math.atan(aspect)) / maxDepth) / Math.PI;
 	const a = [fov, aspect];
 
 	return {
@@ -25,25 +28,126 @@ function computeCameraSettings({ width, height }) {
 	};
 }
 
+function createNoise(geometry) {
+	const normalizedIntensity = noiseIntensity / (1 + objectRadius);
+
+	return geometry.vertices.map(
+		v => (1 + v.length()) * Math.random() * normalizedIntensity
+	);
+}
+
+function createRippleParams() {
+	return {
+		width: {
+			value: 0
+		},
+		height: {
+			value: 0
+		},
+		time: {
+			value: 0
+		},
+		rippleIntensity: {
+			value: rippleIntensity
+		},
+		waveIntensity: {
+			value: waveIntensity
+		},
+		dentNormalize: {
+			value: dentNormalize
+		},
+		cursorPosition: {
+			value: noCursorPosition
+		},
+	};
+}
+
+function rippleVertexShader(shader, params) {
+	const { vertexShader } = shader;
+
+	const newVertexShader = `
+		#define M_PI 3.1415926535897932384626433832795
+
+		uniform float width;
+		uniform float height;
+		uniform float time;
+		uniform float rippleIntensity;
+		uniform float waveIntensity;
+		uniform float dentNormalize;
+		uniform vec2 cursorPosition;
+
+		${vertexShader.replace("#include <begin_vertex>", `
+			vec3 transformed = vec3(position);
+
+			vec4 projected = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+			projected.x = (projected.x / projected.w + 1.0) * width * 0.5;
+			projected.y = (-projected.y / projected.w + 1.0) * height * 0.5;
+
+			float lenSq = dot(transformed, transformed);
+			float len = sqrt(lenSq);
+
+			float mainWave = waveIntensity
+				/ max(lenSq, 1.0)
+				* sin(len * 6.0 - time * M_PI / 5.0);
+
+			float dent;
+
+			if(cursorPosition.x != -1.0) {
+				float deltaX = cursorPosition.x - projected.x;
+				float deltaY = cursorPosition.y - projected.y;
+				float cursorDistSq = deltaX * deltaX + deltaY * deltaY;
+				dent = rippleIntensity * exp(-cursorDistSq / dentNormalize);
+			}
+			else dent = 0.0;
+
+			transformed.z += mainWave - dent;
+		`)}
+	`;
+
+
+	Object.assign(shader.uniforms, params);
+	shader.vertexShader = newVertexShader;
+	console.log(newVertexShader);
+}
+
+function createRippleMaterial(config, params) {
+	return new THREE.MeshStandardMaterial({
+		...config,
+		onBeforeCompile: shader => rippleVertexShader(shader, params)
+	});
+}
+
 function createScene() {
 	const scene = new THREE.Scene();
 
 	// Materials:
-
-	const material = new THREE.MeshStandardMaterial({ color: 0x151515, flatShading: true });
-	const wireMaterial = new THREE.MeshStandardMaterial({ color: 0x202020, wireframe: true });
+	const params = createRippleParams();
+	const material = createRippleMaterial({
+		color: 0x151515,
+		flatShading: true
+	}, params);
+	const wireMaterial = createRippleMaterial({
+		color: 0x202020,
+		wireframe: true
+	}, params);
 
 	// Geometry:
 
-	const geometry = new THREE.RingGeometry(-1, objectRadius, 64, 80);
-	const wireframe = new THREE.LineSegments(geometry, wireMaterial);
+	const geometry = new THREE.RingGeometry(-1, objectRadius, 64, radiusSegments);
 
 	const mesh = new THREE.Mesh(geometry, material);
-	const axis = new THREE.Vector3(0, 0, 1);
-
-	geometry.vertices.forEach(v => v.applyAxisAngle(axis, -Math.exp(v.length() ** -0.5)));
+	const wireframe = new THREE.LineSegments(geometry, wireMaterial);
 
 	mesh.add(wireframe);
+
+	const axis = new THREE.Vector3(0, 0, 1);
+	const noise = createNoise(geometry);
+
+	geometry.vertices.forEach((v, i) => {
+		v.applyAxisAngle(axis, -Math.exp(v.length() ** -0.5));
+		v.z = noise[i];
+	});
+	geometry.verticesNeedUpdate = true;
 
 	// Lights:
 
@@ -62,13 +166,7 @@ function createScene() {
 	scene.add(spot);
 	scene.add(mesh);
 
-	return { scene, geometry, mesh };
-}
-
-function createNoise(geometry) {
-	const normalizedIntensity = noiseIntensity / (1 + objectRadius);
-
-	return geometry.vertices.map(v => (1 + v.length()) * Math.random() * normalizedIntensity);
+	return { scene, mesh, params };
 }
 
 function getSize() {
@@ -79,15 +177,19 @@ function getSize() {
 }
 
 class GraphComponent extends LitElement {
-	constructor() {
-		super();
+	connectedCallback() {
+		super.connectedCallback();
 
+		this.init();
+	}
+
+	init() {
 		const ripples = [];
 		let cursorPosition = null;
+
+		const { scene, mesh, params } = createScene();
+
 		let size = getSize();
-
-		const { scene, geometry, mesh } = createScene();
-
 		const camera = new THREE.PerspectiveCamera(...computeCameraSettings(size), 0.1, 6);
 		const renderer = new THREE.WebGLRenderer({
 			antialias: true,
@@ -96,20 +198,20 @@ class GraphComponent extends LitElement {
 
 		renderer.setPixelRatio(window.devicePixelRatio);
 		renderer.setSize(size.width, size.height);
+		params.width.value = size.width;
+		params.height.value = size.height;
 
-		// new OrbitControls(camera, renderer.domElement); // eslint-disable-line no-new
+		new OrbitControls(camera, renderer.domElement); // eslint-disable-line no-new
 
 		camera.position.z = 2;
 
-		const zAxis = new THREE.Vector3(0, 0, 1);
 		const clock = new THREE.Clock();
-
-		const noise = createNoise(geometry);
 
 		this.renderer = renderer;
 
-		requestAnimationFrame(function animate() {
-			requestAnimationFrame(animate);
+		const animate = () => {
+			if(this.isConnected)
+				requestAnimationFrame(animate);
 
 			const Δt = clock.getDelta();
 			const time = clock.elapsedTime;
@@ -123,37 +225,41 @@ class GraphComponent extends LitElement {
 
 			mesh.rotateZ(-Δt * Math.PI / 20);
 
-			geometry.vertices.forEach((v, i) => {
-				const projected = v.clone().applyAxisAngle(zAxis, mesh.rotation.z).project(camera);
-				const canvasPosition = new THREE.Vector2(projected.x, projected.y);
+			params.time.value = time;
 
-				canvasPosition.x = (canvasPosition.x + 1) * size.width / 2;
-				canvasPosition.y = -(canvasPosition.y - 1) * size.height / 2;
-
-				const distance = cursorPosition ? cursorPosition.distanceToSquared(canvasPosition) : Infinity;
-
-				const ripple = ripples.reduce((acc, { origin, time: rippleTime }) => {
-					const Δd2 = canvasPosition.distanceToSquared(origin);
-					const Δd = Math.sqrt(Δd2);
-					const Δt = time - rippleTime;
-					const sinVal = Δd / 50 - Δt * 20;
-
-					if(sinVal >= 0)
-						return acc;
-
-					return acc + Math.exp(-Δd2 / 50000 - 2 * Δt) * Math.sin(sinVal);
-				}, 0);
-
-				v.z = noise[i]
-					+ -rippleIntensity * Math.exp(-distance / 5000)
-					+ -rippleIntensity * ripple
-					+ waveIntensity * Math.max(v.lengthSq(), 1) ** -1
-					* Math.sin(v.length() * 6 - time * Math.PI / 5);
-			});
-			geometry.verticesNeedUpdate = true;
+			// geometry.vertices.forEach((v, i) => {
+			// 	const projected = v.clone().applyAxisAngle(zAxis, mesh.rotation.z).project(camera);
+			// 	const canvasPosition = new THREE.Vector2(projected.x, projected.y);
+			//
+			// 	canvasPosition.x = (canvasPosition.x + 1) * size.width / 2;
+			// 	canvasPosition.y = -(canvasPosition.y - 1) * size.height / 2;
+			//
+			// 	const distance = cursorPosition ? cursorPosition.distanceToSquared(canvasPosition) : Infinity;
+			//
+			// 	const ripple = ripples.reduce((acc, { origin, time: rippleTime }) => {
+			// 		const Δd2 = canvasPosition.distanceToSquared(origin);
+			// 		const Δd = Math.sqrt(Δd2);
+			// 		const Δt = time - rippleTime;
+			// 		const sinVal = Δd / 50 - Δt * 20;
+			//
+			// 		if(sinVal >= 0)
+			// 			return acc;
+			//
+			// 		return acc + Math.exp(-Δd2 / 50000 - 2 * Δt) * Math.sin(sinVal);
+			// 	}, 0);
+			//
+			// 	v.z = noise[i]
+			// 		+ -rippleIntensity * Math.exp(-distance / 5000)
+			// 		+ -rippleIntensity * ripple
+			// 		+ waveIntensity * Math.max(v.lengthSq(), 1) ** -1
+			// 		* Math.sin(v.length() * 6 - time * Math.PI / 5);
+			// });
+			// geometry.verticesNeedUpdate = true;
 
 			renderer.render(scene, camera);
-		});
+		};
+
+		requestAnimationFrame(animate);
 
 		window.addEventListener("resize", () => {
 			size = getSize();
@@ -161,12 +267,16 @@ class GraphComponent extends LitElement {
 			Object.assign(camera, computeCameraSettings(size));
 			camera.updateProjectionMatrix();
 			renderer.setSize(size.width, size.height);
+			params.width.value = size.width;
+			params.height.value = size.height;
 
 			cursorPosition = null;
+			params.cursorPosition.value = noCursorPosition;
 		}, false);
 
 		window.addEventListener("mousemove", e => {
 			cursorPosition = new THREE.Vector2(e.clientX, e.clientY);
+			params.cursorPosition.value = cursorPosition;
 
 			const time = clock.elapsedTime;
 			const [Δd, Δt] = ripples.length > 0
