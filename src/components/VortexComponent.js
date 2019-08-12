@@ -1,6 +1,6 @@
 import { LitElement, html } from "lit-element";
 import * as THREE from "three";
-import OrbitControls from "three-orbitcontrols";
+// import OrbitControls from "three-orbitcontrols";
 
 const objectRadius = 6;
 const radiusSegments = 160;
@@ -8,11 +8,10 @@ const cameraDepth = 2;
 const noiseIntensity = 0.08;
 const rippleIntensity = 0.03;
 const dentNormalize = 5000;
-const newRippleMinDistance = 20;
+const maxRipples = 128;
+const newRippleMinDistance = 10;
 const newRippleMinDistanceSquared = newRippleMinDistance ** 2;
-const newRippleMinDelay = 0.05;
-const removeRippleThreshold = 0.005;
-const logRemoveRippleThreshold = Math.log(removeRippleThreshold);
+const newRippleMinDelay = 0.02;
 const waveIntensity = 0.05;
 const maxDepth = cameraDepth + noiseIntensity + 2 * rippleIntensity + waveIntensity;
 const noCursorPosition = new THREE.Vector2(-1, -1);
@@ -36,13 +35,18 @@ function createNoise(geometry) {
 	);
 }
 
+class Ripple {
+	constructor(time = 0, position = new THREE.Vector2(0, 0), intensity = 0) {
+		this.time = time;
+		this.position = position;
+		this.intensity = intensity;
+	}
+}
+
 function createRippleParams() {
 	return {
-		width: {
-			value: 0
-		},
-		height: {
-			value: 0
+		size: {
+			value: [0, 0]
 		},
 		time: {
 			value: 0
@@ -59,6 +63,9 @@ function createRippleParams() {
 		cursorPosition: {
 			value: noCursorPosition
 		},
+		ripples: {
+			value: Array(maxRipples).fill(new Ripple())
+		}
 	};
 }
 
@@ -67,21 +74,29 @@ function rippleVertexShader(shader, params) {
 
 	const newVertexShader = `
 		#define M_PI 3.1415926535897932384626433832795
+		#define MAX_RIPPLES ${maxRipples}
 
-		uniform float width;
-		uniform float height;
+		uniform vec2 size;
 		uniform float time;
 		uniform float rippleIntensity;
 		uniform float waveIntensity;
 		uniform float dentNormalize;
 		uniform vec2 cursorPosition;
 
+		struct ripple {
+			float time;
+			vec2 position;
+			float intensity;
+		};
+
+		uniform ripple ripples[MAX_RIPPLES];
+
 		${vertexShader.replace("#include <begin_vertex>", `
 			vec3 transformed = vec3(position);
 
-			vec4 projected = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-			projected.x = (projected.x / projected.w + 1.0) * width * 0.5;
-			projected.y = (-projected.y / projected.w + 1.0) * height * 0.5;
+			vec4 projected4 = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+			vec2 projected = vec2(projected4.x, -projected4.y);
+			projected = (projected / projected4.w + 1.0) * size / 2.0;
 
 			float lenSq = dot(transformed, transformed);
 			float len = sqrt(lenSq);
@@ -93,21 +108,33 @@ function rippleVertexShader(shader, params) {
 			float dent;
 
 			if(cursorPosition.x != -1.0) {
-				float deltaX = cursorPosition.x - projected.x;
-				float deltaY = cursorPosition.y - projected.y;
-				float cursorDistSq = deltaX * deltaX + deltaY * deltaY;
+				vec2 delta = cursorPosition - projected;
+				float cursorDistSq = dot(delta, delta);
 				dent = rippleIntensity * exp(-cursorDistSq / dentNormalize);
 			}
 			else dent = 0.0;
 
-			transformed.z += mainWave - dent;
+			float ripplesAgg = 0.0;
+
+			for(int i = 0; i < MAX_RIPPLES; i++) {
+				ripple r = ripples[i];
+				vec2 d = r.position - projected;
+				float distSq = dot(d, d);
+				float dist = sqrt(distSq);
+				float t = time - r.time;
+				float sinVal = dist / 50.0 - t * 20.0;
+				float attack = min(t, 0.1) * 10.0;
+
+				ripplesAgg += r.intensity * attack * exp(-distSq / 50000.0 - 2.0 * t) * sin(sinVal);
+			}
+
+			transformed.z += mainWave - dent - ripplesAgg;
 		`)}
 	`;
 
 
 	Object.assign(shader.uniforms, params);
 	shader.vertexShader = newVertexShader;
-	console.log(newVertexShader);
 }
 
 function createRippleMaterial(config, params) {
@@ -133,13 +160,7 @@ function createScene() {
 
 	// Geometry:
 
-	const geometry = new THREE.RingGeometry(-1, objectRadius, 64, radiusSegments);
-
-	const mesh = new THREE.Mesh(geometry, material);
-	const wireframe = new THREE.LineSegments(geometry, wireMaterial);
-
-	mesh.add(wireframe);
-
+	const geometry = new THREE.RingGeometry(Number.MIN_VALUE, objectRadius, 64, radiusSegments);
 	const axis = new THREE.Vector3(0, 0, 1);
 	const noise = createNoise(geometry);
 
@@ -148,6 +169,11 @@ function createScene() {
 		v.z = noise[i];
 	});
 	geometry.verticesNeedUpdate = true;
+
+	const mesh = new THREE.Mesh(geometry, material);
+	const wireframe = new THREE.LineSegments(geometry, wireMaterial);
+
+	mesh.add(wireframe);
 
 	// Lights:
 
@@ -176,7 +202,7 @@ function getSize() {
 	};
 }
 
-class GraphComponent extends LitElement {
+class VortexComponent extends LitElement {
 	connectedCallback() {
 		super.connectedCallback();
 
@@ -184,11 +210,12 @@ class GraphComponent extends LitElement {
 	}
 
 	init() {
-		const ripples = [];
 		let cursorPosition = null;
 
 		const { scene, mesh, params } = createScene();
 
+		let currentRippleIdx = 0;
+		const ripples = params.ripples.value;
 		let size = getSize();
 		const camera = new THREE.PerspectiveCamera(...computeCameraSettings(size), 0.1, 6);
 		const renderer = new THREE.WebGLRenderer({
@@ -198,12 +225,13 @@ class GraphComponent extends LitElement {
 
 		renderer.setPixelRatio(window.devicePixelRatio);
 		renderer.setSize(size.width, size.height);
-		params.width.value = size.width;
-		params.height.value = size.height;
+		params.size.value = [size.width, size.height];
 
-		new OrbitControls(camera, renderer.domElement); // eslint-disable-line no-new
+		// new OrbitControls(camera, renderer.domElement); // eslint-disable-line no-new
 
 		camera.position.z = 2;
+		camera.position.y = -0.8;
+		camera.lookAt(0, 0, 0);
 
 		const clock = new THREE.Clock();
 
@@ -216,45 +244,9 @@ class GraphComponent extends LitElement {
 			const Δt = clock.getDelta();
 			const time = clock.elapsedTime;
 
-			const cutoffIndex = ripples.findIndex(({ time: rippleTime }) => {
-				return logRemoveRippleThreshold > -2 * (time - rippleTime);
-			});
-
-			if(cutoffIndex >= 0)
-				ripples.splice(cutoffIndex);
-
 			mesh.rotateZ(-Δt * Math.PI / 20);
 
 			params.time.value = time;
-
-			// geometry.vertices.forEach((v, i) => {
-			// 	const projected = v.clone().applyAxisAngle(zAxis, mesh.rotation.z).project(camera);
-			// 	const canvasPosition = new THREE.Vector2(projected.x, projected.y);
-			//
-			// 	canvasPosition.x = (canvasPosition.x + 1) * size.width / 2;
-			// 	canvasPosition.y = -(canvasPosition.y - 1) * size.height / 2;
-			//
-			// 	const distance = cursorPosition ? cursorPosition.distanceToSquared(canvasPosition) : Infinity;
-			//
-			// 	const ripple = ripples.reduce((acc, { origin, time: rippleTime }) => {
-			// 		const Δd2 = canvasPosition.distanceToSquared(origin);
-			// 		const Δd = Math.sqrt(Δd2);
-			// 		const Δt = time - rippleTime;
-			// 		const sinVal = Δd / 50 - Δt * 20;
-			//
-			// 		if(sinVal >= 0)
-			// 			return acc;
-			//
-			// 		return acc + Math.exp(-Δd2 / 50000 - 2 * Δt) * Math.sin(sinVal);
-			// 	}, 0);
-			//
-			// 	v.z = noise[i]
-			// 		+ -rippleIntensity * Math.exp(-distance / 5000)
-			// 		+ -rippleIntensity * ripple
-			// 		+ waveIntensity * Math.max(v.lengthSq(), 1) ** -1
-			// 		* Math.sin(v.length() * 6 - time * Math.PI / 5);
-			// });
-			// geometry.verticesNeedUpdate = true;
 
 			renderer.render(scene, camera);
 		};
@@ -267,8 +259,7 @@ class GraphComponent extends LitElement {
 			Object.assign(camera, computeCameraSettings(size));
 			camera.updateProjectionMatrix();
 			renderer.setSize(size.width, size.height);
-			params.width.value = size.width;
-			params.height.value = size.height;
+			params.size.value = [size.width, size.height];
 
 			cursorPosition = null;
 			params.cursorPosition.value = noCursorPosition;
@@ -279,14 +270,21 @@ class GraphComponent extends LitElement {
 			params.cursorPosition.value = cursorPosition;
 
 			const time = clock.elapsedTime;
+			const prevRippleIdx = currentRippleIdx === 0
+				? ripples.length - 1
+				: currentRippleIdx - 1;
+			const prevRipple = ripples[prevRippleIdx];
+
 			const [Δd, Δt] = ripples.length > 0
-				? [cursorPosition.distanceToSquared(ripples[0].origin), time - ripples[0].time]
+				? [cursorPosition.distanceToSquared(prevRipple.position), time - prevRipple.time]
 				: [Infinity, Infinity];
 
-			if(Δd >= newRippleMinDistanceSquared && Δt >= newRippleMinDelay)
-				ripples.unshift({
-					origin: cursorPosition, time
-				});
+			if(Δd >= newRippleMinDistanceSquared && Δt >= newRippleMinDelay) {
+				ripples[currentRippleIdx] = new Ripple(time, cursorPosition, Math.pow(Δd, 1 / 3) / 500);
+
+				if(++currentRippleIdx >= ripples.length)
+					currentRippleIdx = 0;
+			}
 		}, {
 			passive: true,
 			capture: true
@@ -320,4 +318,4 @@ class GraphComponent extends LitElement {
 	}
 }
 
-window.customElements.define("graph-component", GraphComponent);
+window.customElements.define("vortex-component", VortexComponent);

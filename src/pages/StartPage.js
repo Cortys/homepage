@@ -1,6 +1,6 @@
 import { LitElement, html } from "lit-element";
 import "../components/logo/LogoComponent";
-import "../components/GraphComponent";
+import "../components/VortexComponent";
 import "../components/MenuComponent";
 
 export default class StartPage extends LitElement {
@@ -15,7 +15,7 @@ export default class StartPage extends LitElement {
 					align-items: center;
 				}
 
-				graph-component {
+				vortex-component {
 					position: fixed;
 					width: 100%;
 					height: 100%;
@@ -39,7 +39,7 @@ export default class StartPage extends LitElement {
 					cursor: default;
 				}
 			</style>
-			<graph-component></graph-component>
+			<vortex-component></vortex-component>
 			<logo-component></logo-component>
 			<menu-component></menu-component>
 		`;
