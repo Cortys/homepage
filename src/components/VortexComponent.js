@@ -8,13 +8,15 @@ const cameraDepth = 2;
 const noiseIntensity = 0.08;
 const rippleIntensity = 0.03;
 const dentNormalize = 5000;
-const maxRipples = 128;
 const newRippleMinDistance = 10;
 const newRippleMinDistanceSquared = newRippleMinDistance ** 2;
 const newRippleMinDelay = 0.02;
 const waveIntensity = 0.05;
 const maxDepth = cameraDepth + noiseIntensity + 2 * rippleIntensity + waveIntensity;
 const noCursorPosition = new THREE.Vector2(-1, -1);
+const isTouch = "ontouchstart" in window || navigator.msMaxTouchPoints > 0;
+const moveEvent = isTouch ? "touchmove" : "mousemove";
+const maxRipples = isTouch ? 32 : 128;
 
 function computeCameraSettings({ width, height }) {
 	const aspect = width / height;
@@ -43,7 +45,7 @@ class Ripple {
 	}
 }
 
-function createRippleParams() {
+function createRippleParams({ maxRipples }) {
 	return {
 		size: {
 			value: [0, 0]
@@ -69,7 +71,7 @@ function createRippleParams() {
 	};
 }
 
-function rippleVertexShader(shader, params) {
+function rippleVertexShader(shader, params, { maxRipples }) {
 	const { vertexShader } = shader;
 
 	const newVertexShader = `
@@ -132,31 +134,36 @@ function rippleVertexShader(shader, params) {
 		`)}
 	`;
 
-
 	Object.assign(shader.uniforms, params);
 	shader.vertexShader = newVertexShader;
 }
 
-function createRippleMaterial(config, params) {
+function createRippleMaterial(config, params, consts) {
 	return new THREE.MeshStandardMaterial({
 		...config,
-		onBeforeCompile: shader => rippleVertexShader(shader, params)
+		onBeforeCompile: shader => rippleVertexShader(shader, params, consts)
 	});
 }
 
-function createScene() {
+function createScene(renderer) {
 	const scene = new THREE.Scene();
 
+	if(renderer.capabilities.maxVertexUniforms < 250)
+		return;
+
 	// Materials:
-	const params = createRippleParams();
+	const consts = {
+		maxRipples
+	};
+	const params = createRippleParams(consts);
 	const material = createRippleMaterial({
 		color: 0x151515,
 		flatShading: true
-	}, params);
+	}, params, consts);
 	const wireMaterial = createRippleMaterial({
 		color: 0x202020,
 		wireframe: true
-	}, params);
+	}, params, consts);
 
 	// Geometry:
 
@@ -212,16 +219,17 @@ class VortexComponent extends LitElement {
 	init() {
 		let cursorPosition = null;
 
-		const { scene, mesh, params } = createScene();
+		const renderer = new THREE.WebGLRenderer({
+			antialias: true,
+			alpha: true
+		});
+
+		const { scene, mesh, params } = createScene(renderer) || {};
 
 		let currentRippleIdx = 0;
 		const ripples = params.ripples.value;
 		let size = getSize();
 		const camera = new THREE.PerspectiveCamera(...computeCameraSettings(size), 0.1, 6);
-		const renderer = new THREE.WebGLRenderer({
-			antialias: true,
-			alpha: true
-		});
 
 		renderer.setPixelRatio(window.devicePixelRatio);
 		renderer.setSize(size.width, size.height);
@@ -253,7 +261,7 @@ class VortexComponent extends LitElement {
 
 		requestAnimationFrame(animate);
 
-		window.addEventListener("resize", () => {
+		const resizeListener = () => {
 			size = getSize();
 
 			Object.assign(camera, computeCameraSettings(size));
@@ -263,10 +271,12 @@ class VortexComponent extends LitElement {
 
 			cursorPosition = null;
 			params.cursorPosition.value = noCursorPosition;
-		}, false);
+		};
 
-		window.addEventListener("mousemove", e => {
-			cursorPosition = new THREE.Vector2(e.clientX, e.clientY);
+		const moveListener = e => {
+			const p = isTouch ? e.touches[0] : e;
+
+			cursorPosition = new THREE.Vector2(p.clientX, p.clientY);
 			params.cursorPosition.value = cursorPosition;
 
 			const time = clock.elapsedTime;
@@ -285,7 +295,11 @@ class VortexComponent extends LitElement {
 				if(++currentRippleIdx >= ripples.length)
 					currentRippleIdx = 0;
 			}
-		}, {
+		};
+
+		window.addEventListener("resize", resizeListener, false);
+
+		window.addEventListener(moveEvent, moveListener, {
 			passive: true,
 			capture: true
 		});

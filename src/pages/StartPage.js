@@ -10,17 +10,18 @@ export default class StartPage extends LitElement {
 				:host {
 					min-width: 100%;
 					height: 100%;
-					display: flex;
-					justify-content: center;
-					align-items: center;
+					display: block;
 				}
 
-				vortex-component {
+				vortex-component, #logo-container {
 					position: fixed;
 					width: 100%;
 					height: 100%;
 					top: 0;
 					left: 0;
+					display: flex;
+					align-items: center;
+					justify-content: center;
 				}
 
 				logo-component {
@@ -28,7 +29,7 @@ export default class StartPage extends LitElement {
 					min-height: 150px;
 					width: 30vw;
 					max-width: 460px;
-					max-height: 100vh;
+					max-height: 80vh;
 				}
 
 				menu-component {
@@ -40,7 +41,9 @@ export default class StartPage extends LitElement {
 				}
 			</style>
 			<vortex-component></vortex-component>
-			<logo-component></logo-component>
+			<div id="logo-container">
+				<logo-component></logo-component>
+			</div>
 			<menu-component></menu-component>
 		`;
 	}
