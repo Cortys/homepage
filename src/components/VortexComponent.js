@@ -1,4 +1,4 @@
-import { LitElement, html } from "lit-element";
+import { LitElement, html, css } from "lit-element";
 import * as THREE from "three";
 // import OrbitControls from "three-orbitcontrols";
 
@@ -305,22 +305,25 @@ class VortexComponent extends LitElement {
 		});
 	}
 
+	static get styles() {
+		return css`
+			:host {
+				display: block;
+			}
+
+			#graph, #graph canvas {
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				top: 0;
+				left: 0;
+
+			}
+		`;
+	}
+
 	render() {
 		return html`
-			<style>
-				:host {
-					display: block;
-				}
-
-				#graph, #graph canvas {
-					position: absolute;
-					width: 100%;
-					height: 100%;
-					top: 0;
-					left: 0;
-
-				}
-			</style>
 			<div id="graph"></div>
 		`;
 	}
