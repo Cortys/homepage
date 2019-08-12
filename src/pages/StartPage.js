@@ -39,7 +39,7 @@ export default class StartPage extends LitElement {
 				text-align: center;
 				width: 100%;
 				bottom: 7vh;
-				font-size: 250%;
+				font-size: var(--font-h1-size);
 				font-weight: inherit;
 				margin: 0;
 				margin-bottom: 1.5em;
@@ -51,9 +51,9 @@ export default class StartPage extends LitElement {
 				text-align: center;
 				width: 100%;
 				bottom: 7vh;
-				font-size: 140%;
+				font-size: var(--font-h3-size);
 				cursor: default;
-				color: #d5b8b8;
+				color: var(--off-white);
 			}
 		`;
 	}
