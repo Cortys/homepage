@@ -1,6 +1,6 @@
 import { LitElement, html, css } from "lit-element";
 import * as THREE from "three";
-// import OrbitControls from "three-orbitcontrols";
+import OrbitControls from "three-orbitcontrols";
 
 const objectRadius = 6;
 const radiusSegments = 160;
@@ -72,7 +72,7 @@ function createRippleParams({ maxRipples }) {
 }
 
 function rippleVertexShader(shader, params, { maxRipples }) {
-	const { vertexShader } = shader;
+	const { vertexShader, fragmentShader } = shader;
 
 	const newVertexShader = `
 		#define M_PI 3.1415926535897932384626433832795
@@ -93,8 +93,11 @@ function rippleVertexShader(shader, params, { maxRipples }) {
 
 		uniform ripple ripples[MAX_RIPPLES];
 
+		varying vec3 varPosition;
+
 		${vertexShader.replace("#include <begin_vertex>", `
 			vec3 transformed = vec3(position);
+			varPosition = transformed;
 
 			vec4 projected4 = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 			vec2 projected = vec2(projected4.x, -projected4.y);
@@ -134,8 +137,47 @@ function rippleVertexShader(shader, params, { maxRipples }) {
 		`)}
 	`;
 
+	const newFragmentShader = `
+		#define M_PI 3.1415926535897932384626433832795
+
+		uniform float time;
+		uniform float explosionTime;
+
+		varying vec3 varPosition;
+
+		const vec4 WHITE = vec4(1, 1, 1, 1);
+
+		float burstIntensity(in float frequency, in float phase, in float innerRadius, in float outerRadius, in vec3 pp) {
+			float i = max(0.0, cos(frequency * pp.x + phase));
+			float i2 = i * i;
+			float d = (1.0 - min(pp.y - innerRadius, outerRadius) / outerRadius) + 3.0 * pp.z;
+
+			return min(1.0, i2 * d * d);
+		}
+
+		void addBurst(inout vec4 fc, in float frequency, in float phase, in float innerRadius, in float outerRadius, in vec3 pp) {
+			float i = burstIntensity(frequency, phase, innerRadius, outerRadius, pp);
+
+			fc = mix(fc, WHITE, i);
+		}
+
+		${fragmentShader.replace("#include <dithering_fragment>", `
+			#include <dithering_fragment>
+
+			vec3 polarPosition = vec3(atan(varPosition.x, varPosition.y), length(varPosition.xy), varPosition.z);
+
+			addBurst(gl_FragColor, 2.0, 0.0, 0.0, 6.0, polarPosition);
+			addBurst(gl_FragColor, 4.0, M_PI, 0.0, 4.0, polarPosition);
+			addBurst(gl_FragColor, 8.0, M_PI / 4.0, 0.0, 6.0, polarPosition);
+			addBurst(gl_FragColor, 16.0, M_PI / 2.0, 0.0, 3.0, polarPosition);
+			addBurst(gl_FragColor, 0.0, 0.0, 0.2, 1.0, polarPosition);
+		`)}
+	`;
+
 	Object.assign(shader.uniforms, params);
 	shader.vertexShader = newVertexShader;
+	shader.fragmentShader = newFragmentShader;
+	console.log(newFragmentShader);
 }
 
 function createRippleMaterial(config, params, consts) {
@@ -223,9 +265,7 @@ class VortexComponent extends LitElement {
 			antialias: true,
 			alpha: true
 		});
-
 		const { scene, mesh, params } = createScene(renderer) || {};
-
 		let currentRippleIdx = 0;
 		const ripples = params.ripples.value;
 		let size = getSize();
@@ -235,11 +275,11 @@ class VortexComponent extends LitElement {
 		renderer.setSize(size.width, size.height);
 		params.size.value = [size.width, size.height];
 
-		// new OrbitControls(camera, renderer.domElement); // eslint-disable-line no-new
-
 		camera.position.z = 2;
 		camera.position.y = -0.8;
 		camera.lookAt(0, 0, 0);
+
+		new OrbitControls(camera, renderer.domElement); // eslint-disable-line no-new
 
 		const clock = new THREE.Clock();
 

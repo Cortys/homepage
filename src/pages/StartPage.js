@@ -2,9 +2,6 @@ import { LitElement, html, css } from "lit-element";
 import "../components/logo/LogoComponent";
 import "../components/VortexComponent";
 import "../components/MenuComponent";
-import theme from "../styles/theme.scss";
-
-console.log(theme);
 
 export default class StartPage extends LitElement {
 	static get styles() {
@@ -26,6 +23,10 @@ export default class StartPage extends LitElement {
 				justify-content: center;
 			}
 
+			#logo-container {
+				pointer-events: none;
+			}
+
 			#logo {
 				min-width: 150px;
 				min-height: 150px;
@@ -44,6 +45,7 @@ export default class StartPage extends LitElement {
 				margin: 0;
 				margin-bottom: 1.5em;
 				cursor: default;
+				text-shadow: var(--black-text-shadow);
 			}
 
 			#menu {
@@ -54,6 +56,7 @@ export default class StartPage extends LitElement {
 				font-size: var(--font-h3-size);
 				cursor: default;
 				color: var(--off-white);
+				text-shadow: var(--black-text-shadow);
 			}
 		`;
 	}

@@ -9,14 +9,12 @@ class MenuComponent extends LitElement {
 				color: inherit;
 				text-decoration: none;
 				margin: 0 8px;
-				transition: 0.2s all var(--ease-out-back);
-				transform: scale(1);
-				transform-origin: 50% 100%;
+				transition: 0.1s all ease-in-out;
 			}
 
 			a:hover {
-				transform: scale(1.1);
-
+				color: var(--white);
+				text-shadow: 0px -2px 8px var(--off-white);
 			}
 		`;
 	}
