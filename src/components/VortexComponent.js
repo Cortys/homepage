@@ -1,6 +1,6 @@
 import { LitElement, html, css } from "lit-element";
 import * as THREE from "three";
-import OrbitControls from "three-orbitcontrols";
+// import OrbitControls from "three-orbitcontrols";
 
 const objectRadius = 6;
 const radiusSegments = 160;
@@ -17,6 +17,9 @@ const noCursorPosition = new THREE.Vector2(-1, -1);
 const isTouch = "ontouchstart" in window || navigator.msMaxTouchPoints > 0;
 const moveEvent = isTouch ? "touchmove" : "mousemove";
 const maxRipples = isTouch ? 32 : 128;
+const burstFrequencies = [0, 2, 4, 5, 7, 13];
+const burstCount = burstFrequencies.length;
+const glowUpProgress = 0.55;
 
 function computeCameraSettings({ width, height }) {
 	const aspect = width / height;
@@ -45,6 +48,32 @@ class Ripple {
 	}
 }
 
+class Burst {
+	constructor(
+		frequency = 0,
+		pulsingFrequency = 0.1 + frequency / 3,
+		phaseOffset = frequency * Math.PI,
+		phaseFrequency = frequency / 128,
+		phaseAmplitude = Math.log(frequency + 1) * Math.PI / 3
+	) {
+		this.frequency = frequency;
+		this.pulsingFrequency = pulsingFrequency;
+		this.phaseOffset = phaseOffset;
+		this.phaseFrequency = phaseFrequency;
+		this.phaseAmplitude = phaseAmplitude;
+		this.intensity = 0;
+		this.innerRadius = 0;
+		this.outerRadius = 0;
+	}
+
+	setProgress(progress) {
+		const progressPow = progress ** (1.1 + this.frequency / 13);
+
+		this.outerRadius = 6 * progressPow;
+		this.intensity = progressPow;
+	}
+}
+
 function createRippleParams({ maxRipples }) {
 	return {
 		size: {
@@ -67,6 +96,9 @@ function createRippleParams({ maxRipples }) {
 		},
 		ripples: {
 			value: Array(maxRipples).fill(new Ripple())
+		},
+		bursts: {
+			value: burstFrequencies.map(f => new Burst(f))
 		}
 	};
 }
@@ -90,7 +122,6 @@ function rippleVertexShader(shader, params, { maxRipples }) {
 			vec2 position;
 			float intensity;
 		};
-
 		uniform ripple ripples[MAX_RIPPLES];
 
 		varying vec3 varPosition;
@@ -138,27 +169,52 @@ function rippleVertexShader(shader, params, { maxRipples }) {
 	`;
 
 	const newFragmentShader = `
-		#define M_PI 3.1415926535897932384626433832795
-
-		uniform float time;
-		uniform float explosionTime;
-
-		varying vec3 varPosition;
+		#define BURST_COUNT ${burstCount}
 
 		const vec4 WHITE = vec4(1, 1, 1, 1);
 
-		float burstIntensity(in float frequency, in float phase, in float innerRadius, in float outerRadius, in vec3 pp) {
+		uniform float time;
+
+		struct burst {
+			float frequency;
+			float pulsingFrequency;
+			float phaseOffset;
+			float phaseFrequency;
+			float phaseAmplitude;
+			float intensity;
+			float innerRadius;
+			float outerRadius;
+		};
+		uniform burst bursts[BURST_COUNT];
+
+		varying vec3 varPosition;
+
+		void addBurst(inout float remains, in burst b, in vec3 pp) {
+			float frequency = b.frequency;
+			float pulsingFrequency = b.pulsingFrequency;
+			float phaseOffset = b.phaseOffset;
+			float phaseFrequency = b.phaseFrequency;
+			float phaseAmplitude = b.phaseAmplitude;
+			float maxIntensity = b.intensity;
+			float innerRadius = b.innerRadius;
+			float outerRadius = b.outerRadius;
+
+			if(outerRadius == 0.0)
+				return;
+
+			float phase = phaseOffset + phaseAmplitude * sin(phaseFrequency * time);
+			float outsideOfCore = min(pp.y - innerRadius, outerRadius) / outerRadius;
+
 			float i = max(0.0, cos(frequency * pp.x + phase));
-			float i2 = i * i;
-			float d = (1.0 - min(pp.y - innerRadius, outerRadius) / outerRadius) + 3.0 * pp.z;
 
-			return min(1.0, i2 * d * d);
-		}
+			float d = (1.0 - outsideOfCore) + 3.0 * pp.z;
 
-		void addBurst(inout vec4 fc, in float frequency, in float phase, in float innerRadius, in float outerRadius, in vec3 pp) {
-			float i = burstIntensity(frequency, phase, innerRadius, outerRadius, pp);
+			float sinPulse = sin(pulsingFrequency * time);
+			float pulse = mix(1.0, sinPulse * sinPulse, outsideOfCore);
 
-			fc = mix(fc, WHITE, i);
+			float burstIntensity = maxIntensity * pulse * min(1.0, i * i * d * d);
+
+			remains *= 1.0 - burstIntensity;
 		}
 
 		${fragmentShader.replace("#include <dithering_fragment>", `
@@ -166,18 +222,18 @@ function rippleVertexShader(shader, params, { maxRipples }) {
 
 			vec3 polarPosition = vec3(atan(varPosition.x, varPosition.y), length(varPosition.xy), varPosition.z);
 
-			addBurst(gl_FragColor, 2.0, 0.0, 0.0, 6.0, polarPosition);
-			addBurst(gl_FragColor, 4.0, M_PI, 0.0, 4.0, polarPosition);
-			addBurst(gl_FragColor, 8.0, M_PI / 4.0, 0.0, 6.0, polarPosition);
-			addBurst(gl_FragColor, 16.0, M_PI / 2.0, 0.0, 3.0, polarPosition);
-			addBurst(gl_FragColor, 0.0, 0.0, 0.2, 1.0, polarPosition);
+			float remains = 1.0;
+
+			for(int i = 0; i < BURST_COUNT; i++)
+				addBurst(remains, bursts[i], polarPosition);
+
+			gl_FragColor = mix(WHITE, gl_FragColor, remains);
 		`)}
 	`;
 
 	Object.assign(shader.uniforms, params);
 	shader.vertexShader = newVertexShader;
 	shader.fragmentShader = newFragmentShader;
-	console.log(newFragmentShader);
 }
 
 function createRippleMaterial(config, params, consts) {
@@ -268,6 +324,7 @@ class VortexComponent extends LitElement {
 		const { scene, mesh, params } = createScene(renderer) || {};
 		let currentRippleIdx = 0;
 		const ripples = params.ripples.value;
+		const bursts = params.bursts.value;
 		let size = getSize();
 		const camera = new THREE.PerspectiveCamera(...computeCameraSettings(size), 0.1, 6);
 
@@ -279,11 +336,13 @@ class VortexComponent extends LitElement {
 		camera.position.y = -0.8;
 		camera.lookAt(0, 0, 0);
 
-		new OrbitControls(camera, renderer.domElement); // eslint-disable-line no-new
+		// new OrbitControls(camera, renderer.domElement); // eslint-disable-line no-new
 
 		const clock = new THREE.Clock();
 
 		this.renderer = renderer;
+		this.burstMode = "glowDown";
+		this.burstProgress = 0;
 
 		const animate = () => {
 			if(this.isConnected)
@@ -295,6 +354,30 @@ class VortexComponent extends LitElement {
 			mesh.rotateZ(-Δt * Math.PI / 20);
 
 			params.time.value = time;
+
+			let newBurstProgress;
+
+			if(this.burstMode === "glowDown") {
+				if(this.burstProgress > 0)
+					newBurstProgress = Math.max(0, this.burstProgress - 3 * Δt);
+			}
+			else if(this.burstMode === "glowUp") {
+				const toGo = glowUpProgress - this.burstProgress;
+
+				if(toGo > 0)
+					newBurstProgress = Math.min(glowUpProgress, this.burstProgress + 0.5 * Δt * toGo / glowUpProgress);
+			}
+			else if(this.burstMode === "explode") {
+				if(this.burstProgress < 1)
+					newBurstProgress = Math.min(1, this.burstProgress + 2 * Δt);
+			}
+
+			if(newBurstProgress !== undefined) {
+				this.burstProgress = newBurstProgress;
+
+				for(const burst of bursts)
+					burst.setProgress(newBurstProgress);
+			}
 
 			renderer.render(scene, camera);
 		};
@@ -372,6 +455,18 @@ class VortexComponent extends LitElement {
 		const graphElement = this.shadowRoot.querySelector("#graph");
 
 		graphElement.appendChild(this.renderer.domElement);
+	}
+
+	glowDown() {
+		this.burstMode = "glowDown";
+	}
+
+	glowUp() {
+		this.burstMode = "glowUp";
+	}
+
+	explode() {
+		this.burstMode = "explode";
 	}
 }
 

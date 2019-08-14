@@ -1,6 +1,16 @@
 import { LitElement, html, css } from "lit-element";
 
 class MenuComponent extends LitElement {
+	constructor() {
+		super();
+
+		this.addEventListener("mouseover", e => this.onMouseEvent(e), { passive: true });
+		this.addEventListener("mouseout", e => this.onMouseEvent(e), { passive: true });
+		this.addEventListener("mousemove", e => this.onMouseEvent(e), { passive: true });
+
+		this.hovered = false;
+	}
+
 	static get styles() {
 		return css`
 			a {
@@ -27,6 +37,19 @@ class MenuComponent extends LitElement {
 			&middot;
 			<a href="https://github.com/Cortys">GitHub</a>
 		`;
+	}
+
+	onMouseEvent() {
+		const hovered = this.shadowRoot.querySelector("a:hover") != null;
+
+		if(hovered === this.hovered)
+			return;
+
+		this.hovered = hovered;
+		this.dispatchEvent(new CustomEvent("hovered-change", {
+			detail: hovered,
+			composed: true
+		}));
 	}
 }
 
