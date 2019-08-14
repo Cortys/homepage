@@ -2,7 +2,11 @@
 
 cd "${BASH_SOURCE%/*}" || exit
 
-eval $(cat .deployenv)
+if [ -f .deployenv ]; then
+	eval $(cat .deployenv)
+else
+	echo "echo \"No .deployenv found. Using parent environment.\""
+fi
 
 echo "Rebuilding site..."
 
