@@ -62,7 +62,6 @@ class LogoComponent extends LitElement {
 				height: 52%;
 				opacity: 0.5;
 				animation: logoRotate 20s linear infinite reverse;
-
 			}
 		`;
 	}

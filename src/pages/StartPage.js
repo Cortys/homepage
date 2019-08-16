@@ -68,7 +68,10 @@ export default class StartPage extends LitElement {
 				<logo-component id="logo"></logo-component>
 			</div>
 			<h1 id="title">Clemens Damke</h1>
-			<menu-component id="menu" @hovered-change=${this.onHoveredChange}></menu-component>
+			<menu-component id="menu"
+				hoverStartEventDelay=400
+				hoverEndEventDelay=150
+				@hovered-change=${this.onHoveredChange}></menu-component>
 		`;
 	}
 

@@ -2,9 +2,14 @@ import { LitElement, html, css } from "lit-element";
 import * as THREE from "three";
 // import OrbitControls from "three-orbitcontrols";
 
-const objectRadius = 6;
-const radiusSegments = 160;
-const cameraDepth = 2;
+const objectRadius = 4.5;
+const radiusSegments = 120;// 160;
+const cameraZ = 2;
+const cameraY = -0.8;
+const cameraDepth = Math.sqrt(cameraY ** 2 + cameraZ ** 2);
+const cameraTan = Math.abs(cameraY / cameraZ);
+const cameraAngle = Math.atan(cameraTan);
+const cameraSquish = Math.cos(cameraAngle);
 const noiseIntensity = 0.08;
 const rippleIntensity = 0.03;
 const dentNormalize = 5000;
@@ -19,11 +24,14 @@ const moveEvent = isTouch ? "touchmove" : "mousemove";
 const maxRipples = isTouch ? 32 : 128;
 const burstFrequencies = [0, 2, 4, 5, 7, 13];
 const burstCount = burstFrequencies.length;
+const maxBurstFrequency = Math.max(...burstFrequencies);
 const glowUpProgress = 0.55;
+const innerGlowUpDelay = 0.55;
 
 function computeCameraSettings({ width, height }) {
 	const aspect = width / height;
-	const fov = 360 * Math.atan(objectRadius * 0.5 * Math.cos(Math.atan(aspect)) / maxDepth) / Math.PI;
+	const projHeight = objectRadius * cameraSquish * Math.cos(Math.atan(aspect));
+	const fov = 360 * Math.atan(projHeight / (maxDepth + cameraTan * projHeight)) / Math.PI;
 	const a = [fov, aspect];
 
 	return {
@@ -67,9 +75,12 @@ class Burst {
 	}
 
 	setProgress(progress) {
-		const progressPow = progress ** (1.1 + this.frequency / 13);
+		const relFreq = this.frequency / maxBurstFrequency;
+		const innerProgress = Math.max(0, (1 - relFreq) * progress - innerGlowUpDelay) / (1 - innerGlowUpDelay);
+		const progressPow = progress ** (1.1 + relFreq);
 
-		this.outerRadius = 6 * progressPow;
+		this.innerRadius = objectRadius * innerProgress;
+		this.outerRadius = objectRadius * 1.2 * progressPow;
 		this.intensity = progressPow;
 	}
 }
@@ -203,7 +214,7 @@ function rippleVertexShader(shader, params, { maxRipples }) {
 				return;
 
 			float phase = phaseOffset + phaseAmplitude * sin(phaseFrequency * time);
-			float outsideOfCore = min(pp.y - innerRadius, outerRadius) / outerRadius;
+			float outsideOfCore = min(max(0.0, pp.y - innerRadius), outerRadius) / outerRadius;
 
 			float i = max(0.0, cos(frequency * pp.x + phase));
 
@@ -332,8 +343,8 @@ class VortexComponent extends LitElement {
 		renderer.setSize(size.width, size.height);
 		params.size.value = [size.width, size.height];
 
-		camera.position.z = 2;
-		camera.position.y = -0.8;
+		camera.position.z = cameraZ;
+		camera.position.y = cameraY;
 		camera.lookAt(0, 0, 0);
 
 		// new OrbitControls(camera, renderer.domElement); // eslint-disable-line no-new
@@ -350,8 +361,9 @@ class VortexComponent extends LitElement {
 
 			const Δt = clock.getDelta();
 			const time = clock.elapsedTime;
+			const rotateSpeed = 1 + 3 * this.burstProgress ** 2;
 
-			mesh.rotateZ(-Δt * Math.PI / 20);
+			mesh.rotateZ(-Δt * Math.PI / 20 * rotateSpeed);
 
 			params.time.value = time;
 
@@ -359,7 +371,7 @@ class VortexComponent extends LitElement {
 
 			if(this.burstMode === "glowDown") {
 				if(this.burstProgress > 0)
-					newBurstProgress = Math.max(0, this.burstProgress - 3 * Δt);
+					newBurstProgress = Math.max(0, this.burstProgress - 2 * Δt);
 			}
 			else if(this.burstMode === "glowUp") {
 				const toGo = glowUpProgress - this.burstProgress;
@@ -369,7 +381,7 @@ class VortexComponent extends LitElement {
 			}
 			else if(this.burstMode === "explode") {
 				if(this.burstProgress < 1)
-					newBurstProgress = Math.min(1, this.burstProgress + 2 * Δt);
+					newBurstProgress = Math.min(1, this.burstProgress + 3 * Δt);
 			}
 
 			if(newBurstProgress !== undefined) {

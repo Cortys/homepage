@@ -9,6 +9,16 @@ class MenuComponent extends LitElement {
 		this.addEventListener("mousemove", e => this.onMouseEvent(e), { passive: true });
 
 		this.hovered = false;
+		this.hoverStartEventDelay = 0;
+		this.hoverEndEventDelay = 0;
+	}
+
+	static get properties() {
+		return {
+			hovered: { type: Boolean },
+			hoverStartEventDelay: { type: Number },
+			hoverEndEventDelay: { type: Number }
+		};
 	}
 
 	static get styles() {
@@ -41,15 +51,34 @@ class MenuComponent extends LitElement {
 
 	onMouseEvent() {
 		const hovered = this.shadowRoot.querySelector("a:hover") != null;
+		const oldHovered = this.hovered;
 
-		if(hovered === this.hovered)
+		if(hovered === oldHovered)
 			return;
 
 		this.hovered = hovered;
-		this.dispatchEvent(new CustomEvent("hovered-change", {
-			detail: hovered,
-			composed: true
-		}));
+
+		const emit = () => {
+			this.dispatchEvent(new CustomEvent("hovered-change", {
+				detail: hovered,
+				composed: true
+			}));
+		};
+		const delay = hovered
+			? this.hoverStartEventDelay
+			: this.hoverEndEventDelay;
+
+		if(delay > 0)
+			setTimeout(() => {
+				const preEmitHovered = this.shadowRoot.querySelector("a:hover") != null;
+
+				if(preEmitHovered !== hovered)
+					return;
+
+				emit();
+			}, delay);
+		else
+			emit();
 	}
 }
 
