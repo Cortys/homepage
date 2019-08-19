@@ -2,15 +2,29 @@ import { LitElement, html, css } from "lit-element";
 import { classMap } from "lit-html/directives/class-map";
 
 import "../../components/logo/LogoComponent";
-import "../../components/VortexComponent";
-import "../../components/MenuComponent";
+import "../../components/menu/MenuComponent";
+import "../../components/vortex/VortexComponent";
 import { goHome, routed } from "../../router";
+
+async function transitionEnd(el, timeout) {
+	return new Promise(resolve => {
+		const l = () => {
+			el.removeEventListener("transitionend", l);
+			resolve();
+		};
+
+		el.addEventListener("transitionend", l);
+
+		setTimeout(resolve, timeout);
+	});
+}
 
 export default class MainPage extends routed(LitElement) {
 	static get properties() {
 		return {
 			currentLocation: { type: Object },
-			withVortex: { type: Boolean }
+			withVortex: { type: Boolean },
+			headComplete: { type: Boolean }
 		};
 	}
 
@@ -18,6 +32,7 @@ export default class MainPage extends routed(LitElement) {
 		super();
 
 		this.withVortex = true;
+		this.headComplete = undefined;
 		this.vortex = document.createElement("vortex-component");
 
 		this.vortex.addEventListener("explosion-complete", () => this.onExplosionComplete());
@@ -122,7 +137,7 @@ export default class MainPage extends routed(LitElement) {
 			}
 
 			#head #menu {
-				will-change: transform;
+				will-change: transform, font-size;
 			}
 
 			/* With head: */
@@ -156,11 +171,13 @@ export default class MainPage extends routed(LitElement) {
 			}
 
 			#head.visible #menu {
-				transform: translateY(calc(-100vh + var(--head-height) - 12px)) scale(0.8);
+				transform: translateY(calc(-100vh + var(--head-height) - 12px));
+				font-size: var(--font-h4-size);
 				text-shadow: none;
 			}
 
 			/* With error: */
+
 			#head.error #title, #head.error #menu  {
 				opacity: 0;
 				pointer-events: none;
@@ -177,6 +194,11 @@ export default class MainPage extends routed(LitElement) {
 			#head.error #error {
 				pointer-events: auto;
 				opacity: 1;
+			}
+
+			/* Without vortex: */
+			#head.complete #menu, #head.complete #logo {
+				transition: none;
 			}
 		`;
 	}
@@ -198,13 +220,15 @@ export default class MainPage extends routed(LitElement) {
 
 	render() {
 		const headVisible = this.headVisible;
+		const headComplete = this.headComplete;
 		const errorVisible = this.errorVisible;
 
 		return html`
-			${this.withVortex ? this.vortex : ""}
+			${this.withVortex || !headComplete ? this.vortex : ""}
 			<header id="head" class=${classMap({
 				visible: headVisible,
-				error: errorVisible
+				error: errorVisible,
+				complete: headComplete
 			})}>
 				<div id="logo-container">
 					<logo-component id="logo" @click=${goHome}></logo-component>
@@ -212,7 +236,8 @@ export default class MainPage extends routed(LitElement) {
 				<h1 id="title">Clemens Damke</h1>
 				<h2 id="error">This is not the page you are looking for.</h2>
 				<menu-component id="menu"
-					currentPageName=${this.currentPageName}
+					.currentPageName=${this.currentPageName}
+					?arrows=${headComplete}
 					@hovered-change=${this.onHoveredChange}></menu-component>
 			</header>
 			<main id="page">
@@ -221,11 +246,30 @@ export default class MainPage extends routed(LitElement) {
 		`;
 	}
 
+	async firstUpdated() {
+		this.headComplete = this.headVisible ? "initialCompletion" : false;
+	}
+
 	updated() {
-		if(this.headVisible)
-			this.vortex.explode();
-		else
+		if(this.headVisible) {
+			if(this.vortex.explode()) {
+				const menu = this.shadowRoot.querySelector("#menu");
+
+				if(this.headComplete !== "initialCompletion") {
+					this.headComplete = undefined;
+					transitionEnd(menu, 1000).then(() => {
+						if(this.headComplete === undefined)
+							this.headComplete = true;
+					});
+				}
+				else
+					this.headComplete = true;
+			}
+		}
+		else {
 			this.vortex.glowDown();
+			this.headComplete = false;
+		}
 	}
 
 	routeChanged(location) {

@@ -1,7 +1,10 @@
-import { LitElement, html, css } from "lit-element";
+import fs from "fs";
+import { LitElement, html, css, unsafeCSS } from "lit-element";
 import { classMap } from "lit-html/directives/class-map";
 
-import { menuEntries, router } from "../router";
+import { menuEntries, router } from "../../router";
+
+const triangle = `data:image/svg+xml;utf8,${encodeURIComponent(fs.readFileSync(`${__dirname}/triangle.svg`, "utf8"))}`;
 
 class MenuComponent extends LitElement {
 	constructor() {
@@ -36,17 +39,45 @@ class MenuComponent extends LitElement {
 				color: inherit;
 				text-decoration: none;
 				margin: 0 12px;
-				transition: 0.1s all ease-in-out;
 			}
 
-			a:not(.active):hover {
+			a span {
+				display: block;
+				transition: 0.1s all ease-in-out;
+				text-rendering: optimizeLegibility;
+			}
+
+			a:not(.active) span:hover {
 				color: var(--white);
 				text-shadow: 0px -2px 8px var(--off-white);
 			}
 
-			a.active {
+			a.active span {
 				color: var(--bright-red);
 				transform: scale(1.1);
+			}
+
+			a::after {
+				position: absolute;
+				display: block;
+				width: 16px;
+				height: 8px;
+				background: url('${unsafeCSS(triangle)}');
+				top: 100%;
+				left: calc(50% - 8px);
+				content: '';
+				transform: translateY(0px);
+				transition: 0.1s transform ease-in-out;
+				pointer-events: none;
+			}
+
+			a.active::after {
+				transform: translateY(12px);
+			}
+
+			:host(:not([arrows])) a::after {
+				opacity: 0;
+				transform: translateY(0px);
 			}
 		`;
 	}
@@ -56,10 +87,10 @@ class MenuComponent extends LitElement {
 			${menuEntries.map(({ name }) => html`
 				<a href="${router.urlForName(name)}" class=${classMap({
 					active: this.currentPageName === name
-				})}>${name}</a>
+				})}><span>${name}</span></a>
 				&middot;
 			`)}
-			<a href="https://github.com/Cortys">GitHub</a>
+			<a href="https://github.com/Cortys"><span>GitHub</span></a>
 		`;
 	}
 

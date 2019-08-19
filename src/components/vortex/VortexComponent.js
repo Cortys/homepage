@@ -370,8 +370,13 @@ class VortexComponent extends LitElement {
 
 		this.renderer.setPixelRatio(window.devicePixelRatio);
 		this.renderer.setSize(size.width, size.height);
-		this.bursts = bursts;
 		params.size.value = [size.width, size.height];
+
+		this.bursts = bursts;
+
+		let initResolve;
+
+		this.initialized = new Promise(resolve => initResolve = resolve);
 
 		camera.position.z = cameraZ;
 		camera.position.y = cameraY;
@@ -429,6 +434,9 @@ class VortexComponent extends LitElement {
 
 			if(newBurstProgress !== undefined || this.burstProgress !== 1 || first)
 				this.renderer.render(scene, camera);
+
+			if(first)
+				initResolve();
 		};
 
 		requestAnimationFrame(() => animate(true));
@@ -514,35 +522,47 @@ class VortexComponent extends LitElement {
 	}
 
 	glowDown(immediate) {
-		if(immediate || !this.burstMode)
+		const prevBurstMode = this.burstMode;
+
+		if(immediate || !prevBurstMode)
 			this.setBurstProgress(0);
-		else if(this.burstMode === "explode")
+		else if(prevBurstMode === "explode")
 			this.delayGlowChangeBy = 0.3;
-		else if(this.burstMode === "glowUp")
+		else if(prevBurstMode === "glowUp")
 			this.delayGlowChangeBy = 0.15;
 		else
 			this.delayGlowChangeBy = 0;
 
 		this.burstMode = "glowDown";
+
+		return prevBurstMode !== "glowDown";
 	}
 
 	glowUp(immediate) {
-		if(immediate || !this.burstMode)
+		const prevBurstMode = this.burstMode;
+
+		if(immediate || !prevBurstMode)
 			this.setBurstProgress(glowUpProgress);
-		else if(this.burstMode === "glowDown" && this.burstProgress === 0)
+		else if(prevBurstMode === "glowDown" && this.burstProgress === 0)
 			this.delayGlowChangeBy = 0.4;
 		else
 			this.delayGlowChangeBy = 0;
 
 		this.burstMode = "glowUp";
+
+		return prevBurstMode !== "glowUp";
 	}
 
 	explode(immediate) {
 		if(immediate || !this.burstMode)
 			this.setBurstProgress(1);
 
+		const prevBurstMode = this.burstMode;
+
 		this.burstMode = "explode";
 		this.delayGlowChangeBy = 0;
+
+		return prevBurstMode !== "explode";
 	}
 }
 
