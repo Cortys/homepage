@@ -246,11 +246,13 @@ export default class MainPage extends routed(LitElement) {
 		`;
 	}
 
-	async firstUpdated() {
+	firstUpdated() {
 		this.headComplete = this.headVisible ? "initialCompletion" : false;
 	}
 
-	updated() {
+	updated(c) {
+		console.log(c, this.headVisible);
+
 		if(this.headVisible) {
 			if(this.vortex.explode()) {
 				const menu = this.shadowRoot.querySelector("#menu");
@@ -275,8 +277,10 @@ export default class MainPage extends routed(LitElement) {
 	routeChanged(location) {
 		this.currentLocation = location;
 
-		if(!this.headVisible)
+		if(!this.headVisible) {
 			this.withVortex = true;
+			this.headComplete = false;
+		}
 	}
 
 	onHoveredChange({ detail: hovered }) {
