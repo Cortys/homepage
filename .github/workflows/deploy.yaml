@@ -39,4 +39,5 @@ jobs:
         USER: ${{ secrets.user }}
         PASSWORD: ${{ secrets.password }}
         TARGET: ${{ secrets.target }}
+        PUBLIC_PATH: ${{ secrets.publicPath }}
         PURGE_URL: ${{ secrets.purgeUrl }}

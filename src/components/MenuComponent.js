@@ -1,5 +1,7 @@
 import { LitElement, html, css } from "lit-element";
 
+import { menuEntries, router } from "../router";
+
 class MenuComponent extends LitElement {
 	constructor() {
 		super();
@@ -9,26 +11,29 @@ class MenuComponent extends LitElement {
 		this.addEventListener("mousemove", e => this.onMouseEvent(e), { passive: true });
 
 		this.hovered = false;
-		this.hoverStartEventDelay = 0;
-		this.hoverEndEventDelay = 0;
 	}
 
 	static get properties() {
 		return {
-			hovered: { type: Boolean },
-			hoverStartEventDelay: { type: Number },
-			hoverEndEventDelay: { type: Number }
+			hovered: { type: Boolean }
 		};
 	}
 
 	static get styles() {
 		return css`
+			:host {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				text-align:center;
+			}
+
 			a {
 				position: relative;
 				display: inline-block;
 				color: inherit;
 				text-decoration: none;
-				margin: 0 8px;
+				margin: 0 12px;
 				transition: 0.1s all ease-in-out;
 			}
 
@@ -41,10 +46,10 @@ class MenuComponent extends LitElement {
 
 	render() {
 		return html`
-			<a href="javascript:alert('Coming soon(ish)™.')">About</a>
-			&middot;
-			<a href="javascript:alert('Coming soon(ish)™.')">Projects</a>
-			&middot;
+			${menuEntries.map(({ name }) => html`
+				<a href="${router.urlForName(name)}">${name}</a>
+				&middot;
+			`)}
 			<a href="https://github.com/Cortys">GitHub</a>
 		`;
 	}
@@ -58,27 +63,10 @@ class MenuComponent extends LitElement {
 
 		this.hovered = hovered;
 
-		const emit = () => {
-			this.dispatchEvent(new CustomEvent("hovered-change", {
-				detail: hovered,
-				composed: true
-			}));
-		};
-		const delay = hovered
-			? this.hoverStartEventDelay
-			: this.hoverEndEventDelay;
-
-		if(delay > 0)
-			setTimeout(() => {
-				const preEmitHovered = this.shadowRoot.querySelector("a:hover") != null;
-
-				if(preEmitHovered !== hovered)
-					return;
-
-				emit();
-			}, delay);
-		else
-			emit();
+		this.dispatchEvent(new CustomEvent("hovered-change", {
+			detail: hovered,
+			composed: true
+		}));
 	}
 }
 

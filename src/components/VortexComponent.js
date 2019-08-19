@@ -254,11 +254,8 @@ function createRippleMaterial(config, params, consts) {
 	});
 }
 
-function createScene(renderer) {
+function createScene() {
 	const scene = new THREE.Scene();
-
-	if(renderer.capabilities.maxVertexUniforms < 250)
-		return;
 
 	// Materials:
 	const consts = {
@@ -319,45 +316,76 @@ function getSize() {
 }
 
 class VortexComponent extends LitElement {
+	constructor() {
+		super();
+
+		this.burstMode = undefined;
+		this.burstProgress = 0;
+		this.delayGlowChangeBy = 0;
+
+		const renderer = new THREE.WebGLRenderer({
+			antialias: true,
+			alpha: true
+		});
+
+		if(renderer.capabilities.maxVertexUniforms >= 250)
+			this.renderer = renderer;
+	}
+
 	connectedCallback() {
 		super.connectedCallback();
 
 		this.init();
 	}
 
+	disconnectedCallback() {
+		super.disconnectedCallback();
+
+		if(this._animationId)
+			cancelAnimationFrame(this._animationId);
+
+		if(this.resizeListener) {
+			window.removeEventListener("resize", this.resizeListener);
+			this.resizeListener = undefined;
+		}
+
+		if(this.moveListener) {
+			window.removeEventListener(moveEvent, this.moveListener);
+			this.moveListener = undefined;
+		}
+	}
+
 	init() {
+		if(!this.renderer)
+			return;
+
 		let cursorPosition = null;
 
-		const renderer = new THREE.WebGLRenderer({
-			antialias: true,
-			alpha: true
-		});
-		const { scene, mesh, params } = createScene(renderer) || {};
+		const { scene, mesh, params } = createScene();
 		let currentRippleIdx = 0;
 		const ripples = params.ripples.value;
 		const bursts = params.bursts.value;
 		let size = getSize();
 		const camera = new THREE.PerspectiveCamera(...computeCameraSettings(size), 0.1, 6);
 
-		renderer.setPixelRatio(window.devicePixelRatio);
-		renderer.setSize(size.width, size.height);
+		this.renderer.setPixelRatio(window.devicePixelRatio);
+		this.renderer.setSize(size.width, size.height);
+		this.bursts = bursts;
 		params.size.value = [size.width, size.height];
 
 		camera.position.z = cameraZ;
 		camera.position.y = cameraY;
 		camera.lookAt(0, 0, 0);
 
-		// new OrbitControls(camera, renderer.domElement); // eslint-disable-line no-new
+		// new OrbitControls(camera, this.renderer.domElement); // eslint-disable-line no-new
 
 		const clock = new THREE.Clock();
 
-		this.renderer = renderer;
-		this.burstMode = "glowDown";
-		this.burstProgress = 0;
+		const animate = first => {
+			this._animationId = requestAnimationFrame(animate);
 
-		const animate = () => {
-			if(this.isConnected)
-				requestAnimationFrame(animate);
+			if(!this.burstMode)
+				return;
 
 			const Δt = clock.getDelta();
 			const time = clock.elapsedTime;
@@ -367,41 +395,50 @@ class VortexComponent extends LitElement {
 
 			params.time.value = time;
 
-			let newBurstProgress;
+			let newBurstProgress = this.burstProgress;
 
-			if(this.burstMode === "glowDown") {
+			if(this.delayGlowChangeBy > 0)
+				this.delayGlowChangeBy -= Δt;
+			else if(this.burstMode === "glowDown") {
 				if(this.burstProgress > 0)
-					newBurstProgress = Math.max(0, this.burstProgress - 2 * Δt);
+					newBurstProgress = Math.max(0, this.burstProgress - Δt);
 			}
 			else if(this.burstMode === "glowUp") {
 				const toGo = glowUpProgress - this.burstProgress;
 
 				if(toGo > 0)
 					newBurstProgress = Math.min(glowUpProgress, this.burstProgress + 0.5 * Δt * toGo / glowUpProgress);
+				else if(toGo < 0)
+					newBurstProgress = Math.max(glowUpProgress, this.burstProgress - Δt);
 			}
 			else if(this.burstMode === "explode") {
-				if(this.burstProgress < 1)
-					newBurstProgress = Math.min(1, this.burstProgress + 3 * Δt);
+				if(this.burstProgress < 1) {
+					newBurstProgress = Math.min(1, this.burstProgress + 2.6 * Δt);
+
+					if(newBurstProgress === 1)
+						this.dispatchEvent(new CustomEvent("explosion-complete"));
+				}
 			}
 
-			if(newBurstProgress !== undefined) {
+			if(newBurstProgress !== this.burstProgress || first) {
 				this.burstProgress = newBurstProgress;
 
 				for(const burst of bursts)
 					burst.setProgress(newBurstProgress);
 			}
 
-			renderer.render(scene, camera);
+			if(newBurstProgress !== undefined || this.burstProgress !== 1 || first)
+				this.renderer.render(scene, camera);
 		};
 
-		requestAnimationFrame(animate);
+		requestAnimationFrame(() => animate(true));
 
 		const resizeListener = () => {
 			size = getSize();
 
 			Object.assign(camera, computeCameraSettings(size));
 			camera.updateProjectionMatrix();
-			renderer.setSize(size.width, size.height);
+			this.renderer.setSize(size.width, size.height);
 			params.size.value = [size.width, size.height];
 
 			cursorPosition = null;
@@ -433,17 +470,20 @@ class VortexComponent extends LitElement {
 		};
 
 		window.addEventListener("resize", resizeListener, false);
-
 		window.addEventListener(moveEvent, moveListener, {
 			passive: true,
 			capture: true
 		});
+
+		this.resizeListener = resizeListener;
+		this.moveListener = moveListener;
 	}
 
 	static get styles() {
 		return css`
 			:host {
 				display: block;
+				overflow: hidden;
 			}
 
 			#graph, #graph canvas {
@@ -452,33 +492,57 @@ class VortexComponent extends LitElement {
 				height: 100%;
 				top: 0;
 				left: 0;
-
+				background-color: var(--white);
 			}
 		`;
 	}
 
 	render() {
 		return html`
-			<div id="graph"></div>
+			<div id="graph">${this.renderer.domElement}</div>
 		`;
 	}
 
-	updated() {
-		const graphElement = this.shadowRoot.querySelector("#graph");
+	setBurstProgress(progress) {
+		if(!this.bursts)
+			return;
 
-		graphElement.appendChild(this.renderer.domElement);
+		this.burstProgress = progress;
+
+		for(const burst of this.bursts)
+			burst.setProgress(progress);
 	}
 
-	glowDown() {
+	glowDown(immediate) {
+		if(immediate || !this.burstMode)
+			this.setBurstProgress(0);
+		else if(this.burstMode === "explode")
+			this.delayGlowChangeBy = 0.3;
+		else if(this.burstMode === "glowUp")
+			this.delayGlowChangeBy = 0.15;
+		else
+			this.delayGlowChangeBy = 0;
+
 		this.burstMode = "glowDown";
 	}
 
-	glowUp() {
+	glowUp(immediate) {
+		if(immediate || !this.burstMode)
+			this.setBurstProgress(glowUpProgress);
+		else if(this.burstMode === "glowDown" && this.burstProgress === 0)
+			this.delayGlowChangeBy = 0.4;
+		else
+			this.delayGlowChangeBy = 0;
+
 		this.burstMode = "glowUp";
 	}
 
-	explode() {
+	explode(immediate) {
+		if(immediate || !this.burstMode)
+			this.setBurstProgress(1);
+
 		this.burstMode = "explode";
+		this.delayGlowChangeBy = 0;
 	}
 }
 

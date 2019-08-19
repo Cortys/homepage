@@ -16,7 +16,11 @@
 			"sourceType": "module"
 		},
 		"rules": {
-			"import/no-commonjs": "error"
+			"import/no-commonjs": "error",
+			"no-underscore-dangle": "off"
 		}
-	}]
+	}],
+	"rules": {
+		"import/no-cycle": "off"
+	}
 }

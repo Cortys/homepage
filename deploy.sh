@@ -10,6 +10,8 @@ fi
 
 echo "Rebuilding site..."
 
+export PUBLIC_PATH
+
 if npm run build; then
 	echo "Rebuilt site!"
 else
@@ -17,9 +19,14 @@ else
 	exit 1
 fi
 
+if [[ $* == *--no-deploy* ]]; then
+	echo "No deploy."
+	exit 0
+fi
+
 echo "Deploying site..."
 
-if lftp -c "open --password $PASSWORD sftp://$USER@$HOST:$PORT; mirror -c -e -R -L ./dist $TARGET"; then
+if lftp -c "open --password $PASSWORD sftp://$USER@$HOST:$PORT; mirror -c -e -R -L ./dist -x .htaccess $TARGET"; then
 	echo "Page deployed!"
 else
 	echo "Error while deploying."

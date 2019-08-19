@@ -1,23 +1,29 @@
 body {
 	// Colors:
 	--white: #ffffff;
+	--black: #000000;
 	--off-black: #151515;
 	--red: #c42c2d;
 	--off-white: #d5b8b8;
+	--light-grey: #e8e8e8;
 
 	// Font Sizes:
 	--font-base-size: 14px;
 	--font-h1-size: 250%;
+	--font-h2-size: 200%;
 	--font-h3-size: 140%;
+	--font-h4-size: 110%;
 
 	// Easing Functions:
+	--ease-in-out-back: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+	--ease-in-back: cubic-bezier(0.6, -0.28, 0.735, 0.045);
 	--ease-out-back: cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
 	// Shadows:
 	--black-text-shadow: 0px 0px 6px rgba(0, 0, 0, 0.8);
 
-	background-color: var(--off-black);
-	color: var(--white);
+	background-color: var(--white);
+	color: var(--black);
 	font-family: 'Roboto', sans-serif;
 	font-size: var(--font-base-size);
 	font-weight: 300;
