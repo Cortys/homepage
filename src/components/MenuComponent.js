@@ -45,7 +45,7 @@ class MenuComponent extends LitElement {
 			}
 
 			a.active {
-				color: var(--red);
+				color: var(--bright-red);
 				transform: scale(1.1);
 			}
 		`;

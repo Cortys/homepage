@@ -69,8 +69,8 @@ class LogoComponent extends LitElement {
 	render() {
 		return html`
 			<div id="logo">
-				<img id="back" src="${logoURL}">
-				<img id="front" src="${logoURL}">
+				<img id="back" src="${logoURL}" alt="">
+				<img id="front" src="${logoURL}" alt="">
 			</div>
 		`;
 	}
