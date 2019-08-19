@@ -1,4 +1,5 @@
 import { LitElement, html, css } from "lit-element";
+import { classMap } from "lit-html/directives/class-map";
 
 import { menuEntries, router } from "../router";
 
@@ -15,7 +16,8 @@ class MenuComponent extends LitElement {
 
 	static get properties() {
 		return {
-			hovered: { type: Boolean }
+			hovered: { type: Boolean },
+			currentPageName: { type: String }
 		};
 	}
 
@@ -37,9 +39,14 @@ class MenuComponent extends LitElement {
 				transition: 0.1s all ease-in-out;
 			}
 
-			a:hover {
+			a:not(.active):hover {
 				color: var(--white);
 				text-shadow: 0px -2px 8px var(--off-white);
+			}
+
+			a.active {
+				color: var(--red);
+				transform: scale(1.1);
 			}
 		`;
 	}
@@ -47,7 +54,9 @@ class MenuComponent extends LitElement {
 	render() {
 		return html`
 			${menuEntries.map(({ name }) => html`
-				<a href="${router.urlForName(name)}">${name}</a>
+				<a href="${router.urlForName(name)}" class=${classMap({
+					active: this.currentPageName === name
+				})}>${name}</a>
 				&middot;
 			`)}
 			<a href="https://github.com/Cortys">GitHub</a>

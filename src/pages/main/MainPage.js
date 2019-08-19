@@ -181,15 +181,19 @@ export default class MainPage extends routed(LitElement) {
 		`;
 	}
 
+	get currentPageName() {
+		return this.currentLocation.route.name;
+	}
+
 	get headVisible() {
-		const currName = this.currentLocation.route.name;
+		const currName = this.currentPageName;
 
 		return currName !== "landing"
 			&& currName !== "not-found";
 	}
 
 	get errorVisible() {
-		return this.currentLocation.route.name === "not-found";
+		return this.currentPageName === "not-found";
 	}
 
 	render() {
@@ -208,6 +212,7 @@ export default class MainPage extends routed(LitElement) {
 				<h1 id="title">Clemens Damke</h1>
 				<h2 id="error">This is not the page you are looking for.</h2>
 				<menu-component id="menu"
+					currentPageName=${this.currentPageName}
 					@hovered-change=${this.onHoveredChange}></menu-component>
 			</header>
 			<main id="page">

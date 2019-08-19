@@ -13,6 +13,7 @@
 		"start": "parcel --out-dir dist-dev src/index.html --public-url ${PUBLIC_PATH:-\"\"}",
 		"build": "rm -rf ./dist; parcel build src/index.html --public-url ${PUBLIC_PATH:-\"\"}",
 		"deploy": "bash ./deploy.sh",
+		"fonts": "rm -rf ./src/fonts/*; google-webfonts < ./fonts.list --out-base-dir ./src/fonts",
 		"lint": "eslint src"
 	},
 	"dependencies": {
@@ -21,6 +22,7 @@
 		"lit-html": "^1.1.2",
 		"node-sass": "^4.12.0",
 		"parcel-bundler": "^1.12.3",
+		"src": "^1.1.2",
 		"three": "^0.107.0",
 		"three-orbitcontrols": "^2.102.2"
 	},
@@ -29,6 +31,7 @@
 		"babel-preset-env": "^1.7.0",
 		"eslint": "^6.1.0",
 		"eslint-config-cortys": "^2.1.1",
+		"gulp-google-webfonts": "^2.1.0",
 		"parcel-plugin-eslint": "^1.0.7",
 		"parcel-plugin-webcomponents": "^1.2.1"
 	},

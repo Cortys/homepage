@@ -1,0 +1,18 @@
+@font-face {
+	font-family: 'Roboto';
+	font-style: normal;
+	font-weight: 300;
+	font-display: auto;
+	src: local('Roboto Light'), local('Roboto-Light'), url(Roboto-normal-300.woff) format('woff');
+	unicode-range: U+0-10FFFF;
+}
+
+@font-face {
+	font-family: 'Roboto';
+	font-style: normal;
+	font-weight: 500;
+	font-display: auto;
+	src: local('Roboto Medium'), local('Roboto-Medium'), url(Roboto-normal-500.woff) format('woff');
+	unicode-range: U+0-10FFFF;
+}
+
