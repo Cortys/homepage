@@ -29,6 +29,7 @@ export default class MainPage extends routed(LitElement) {
 				min-width: 100%;
 				height: 100%;
 				display: block;
+				--head-height: 160px;
 			}
 
 			#head {
@@ -40,7 +41,7 @@ export default class MainPage extends routed(LitElement) {
 				background-color: rgba(21, 21, 21, 0);
 			}
 
-			#head, #head > *, #logo {
+			#head > *, #logo {
 				transition: all 0.5s ease-in-out;
 			}
 
@@ -108,16 +109,12 @@ export default class MainPage extends routed(LitElement) {
 			}
 
 			/* Will change: */
-			#head {
-				will-change: height, background-color;
-			}
-
 			#head #logo-container {
-				will-change: transform, width, height;
+				will-change: background-color, height;
 			}
 
 			#head #logo {
-				will-change: width, height;
+				will-change: transform, width, height;
 			}
 
 			#head #title {
@@ -125,41 +122,41 @@ export default class MainPage extends routed(LitElement) {
 			}
 
 			#head #menu {
-				will-change: transform, font-size;
+				will-change: transform;
 			}
 
 			/* With head: */
 
 			#head.visible {
 				position: relative;
-				height: 160px;
-				background-color: rgba(21, 21, 21, 1);
+				pointer-events: none;
 			}
 
-			#head.visible, #head.visible > *, #head.visible #logo {
+			#head.visible > *, #head.visible #logo {
 				transition-delay: 0.3s;
+				pointer-events: auto;
 			}
 
 			#head.visible #logo-container {
-				transform: translateY(-16px);
-				pointer-events: auto;
+				height: var(--head-height);
+				background-color: rgba(21, 21, 21, 1);
 			}
 
 			#head.visible #logo {
 				height: 100%;
-				width: 160px;
+				width: var(--head-height);
 				cursor: pointer;
+				transform: translateY(-16px);
 			}
 
 			#head.visible #title {
-				transform: translateY(-20vh);
+				transform: translateY(-40vh);
 				opacity: 0;
 				pointer-events: none;
 			}
 
 			#head.visible #menu {
-				transform: translateY(-12px);
-				font-size: var(--font-h4-size);
+				transform: translateY(calc(-100vh + var(--head-height) - 12px)) scale(0.8);
 				text-shadow: none;
 			}
 
