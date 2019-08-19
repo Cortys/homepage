@@ -2,7 +2,9 @@ name: Deploy
 
 on:
   push:
-    tags: [deployed]
+    branches: []
+    tags:
+    - deployed
 
 jobs:
   deploy:
