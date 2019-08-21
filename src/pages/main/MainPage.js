@@ -41,9 +41,11 @@ export default class MainPage extends routed(LitElement) {
 	static get styles() {
 		return css`
 			:host {
-				min-width: 100%;
-				height: 100%;
+				left: 0;
+				right: 0;
+				height: 100vh;
 				display: block;
+				position: relative;
 				--head-height: 160px;
 			}
 
@@ -116,11 +118,12 @@ export default class MainPage extends routed(LitElement) {
 				color: var(--off-white);
 			}
 
-			#vortex {
+			vortex-component {
 				position: fixed;
 				height: 100%;
 				top: 0;
 				left: 0;
+				right: 0;
 			}
 
 			/* Will change: */
@@ -197,8 +200,25 @@ export default class MainPage extends routed(LitElement) {
 			}
 
 			/* Without vortex: */
+
 			#head.complete #menu, #head.complete #logo {
 				transition: none;
+			}
+
+			/* Page: */
+			#page {
+				position: absolute;
+				top: var(--head-height);
+				box-sizing: border-box;
+				display: none;
+				left: 0;
+				right: 0;
+				overflow: hidden;
+				padding: 16px;
+			}
+
+			#head.complete ~ #page {
+				display: block;
 			}
 		`;
 	}
@@ -250,9 +270,7 @@ export default class MainPage extends routed(LitElement) {
 		this.headComplete = this.headVisible ? "initialCompletion" : false;
 	}
 
-	updated(c) {
-		console.log(c, this.headVisible);
-
+	updated() {
 		if(this.headVisible) {
 			if(this.vortex.explode()) {
 				const menu = this.shadowRoot.querySelector("#menu");

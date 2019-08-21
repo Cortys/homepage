@@ -1,6 +1,9 @@
 {
 	"root": true,
 	"extends": "cortys",
+	"parserOptions": {
+		"ecmaVersion": 2020
+	},
 	"env": {
 		"browser": true,
 		"node": false

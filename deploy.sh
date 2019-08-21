@@ -8,6 +8,15 @@ else
 	echo "echo \"No .deployenv found. Using parent environment.\""
 fi
 
+echo "Linting site..."
+
+if npm run lint; then
+	echo "Lint passed."
+else
+	echo "Lint failed."
+	exit 1
+fi
+
 echo "Rebuilding site..."
 
 export PUBLIC_PATH

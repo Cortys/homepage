@@ -3,11 +3,13 @@ import { Router } from "@vaadin/router";
 export const menuEntries = [{
 	name: "About",
 	path: "about",
-	component: "about-page"
+	component: "about-page",
+	action: () => import("./pages/about/AboutPage")
 }, {
 	name: "Projects",
 	path: "projects",
-	component: "projects-page"
+	component: "projects-page",
+	action: () => import("./pages/projects/ProjectsPage")
 }];
 
 export const router = new Router(undefined, {
@@ -19,7 +21,7 @@ let mainPage;
 router.setRoutes([{
 	name: "landing",
 	path: "",
-	action(context, commands) {
+	action(_, commands) {
 		if(mainPage == null)
 			mainPage = commands.component("main-page");
 
