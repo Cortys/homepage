@@ -1,12 +1,11 @@
 {
 	"root": true,
 	"extends": "cortys",
+	"settings": {
+		"import/resolver": "parcel"
+	},
 	"parserOptions": {
 		"ecmaVersion": 2020
-	},
-	"env": {
-		"browser": true,
-		"node": false
 	},
 	"globals": {
 		"process": false,
@@ -15,6 +14,10 @@
 	},
 	"overrides": [{
 		"files": ["src/**/*.js"],
+		"env": {
+			"browser": true,
+			"node": false
+		},
 		"parserOptions": {
 			"sourceType": "module"
 		},
@@ -24,6 +27,12 @@
 		}
 	}],
 	"rules": {
-		"import/no-cycle": "off"
+		"import/no-cycle": "off",
+		"import/no-unresolved": ["error", {
+			"ignore": ["\\.md$"]
+		}],
+		"import/extensions": ["warn", "never", {
+			"md": "always"
+		}]
 	}
 }

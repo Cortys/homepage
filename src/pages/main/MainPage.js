@@ -46,7 +46,6 @@ export default class MainPage extends routed(LitElement) {
 				height: 100vh;
 				display: block;
 				position: relative;
-				--head-height: 160px;
 			}
 
 			#head {
@@ -56,6 +55,7 @@ export default class MainPage extends routed(LitElement) {
 				overflow: visible;
 				color: var(--white);
 				background-color: rgba(21, 21, 21, 0);
+				z-index: 2;
 			}
 
 			#head > *, #logo {
@@ -213,8 +213,9 @@ export default class MainPage extends routed(LitElement) {
 				display: none;
 				left: 0;
 				right: 0;
-				overflow: hidden;
-				padding: 16px;
+				bottom: 0;
+				overflow: visible;
+				z-index: 1;
 			}
 
 			#head.complete ~ #page {
