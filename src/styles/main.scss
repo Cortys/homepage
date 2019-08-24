@@ -9,11 +9,11 @@ body {
 	--light-grey: #e8e8e8;
 
 	// Font Sizes:
-	--font-base-size: 14px;
-	--font-h1-size: 250%;
-	--font-h2-size: 200%;
-	--font-h3-size: 140%;
-	--font-h4-size: 110%;
+	--font-base-size: 16px;
+	--font-h1-size: 230%;
+	--font-h2-size: 190%;
+	--font-h3-size: 130%;
+	--font-h4-size: 100%;
 
 	// Easing Functions:
 	--ease-in-out-back: cubic-bezier(0.68, -0.55, 0.265, 1.55);
@@ -30,10 +30,43 @@ body {
 
 	background-color: var(--white);
 	color: var(--black);
-	font-family: 'Roboto', sans-serif;
+	font-family: "Roboto", "Helvetica", sans-serif;
 	font-size: var(--font-base-size);
 	font-weight: 300;
 	margin: 0;
 	padding: 0;
 	height: 100vh;
+}
+
+/* Page animations: */
+main-page > * {
+	width: 100% !important;
+}
+
+main-page > .entering {
+	animation: 0.15s fadeIn ease-in-out;
+}
+
+main-page > .leaving {
+	animation: 0.15s fadeOut ease-in-out;
+}
+
+@keyframes fadeOut {
+	from {
+		opacity: 1;
+	}
+
+	to {
+		opacity: 0;
+	}
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
 }

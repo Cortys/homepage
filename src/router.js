@@ -21,6 +21,7 @@ let mainPage;
 router.setRoutes([{
 	name: "landing",
 	path: "",
+	animate: true,
 	action(_, commands) {
 		if(mainPage == null)
 			mainPage = commands.component("main-page");

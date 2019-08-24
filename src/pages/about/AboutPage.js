@@ -1,5 +1,8 @@
 import { html, css } from "lit-element";
 import { unsafeHTML } from "lit-html/directives/unsafe-html";
+import "@polymer/iron-icon";
+import "@polymer/iron-icons";
+import "@lrnwebcomponents/social-media-icons";
 
 import description from "content/about/description.md";
 import ThemedElement from "../../ThemedElement";
@@ -15,6 +18,7 @@ export default class AboutPage extends ThemedElement {
 				height: 100%;
 				align-items: center;
 				box-sizing: border-box;
+				line-height: 180%;
 			}
 
 			#about {
@@ -22,8 +26,9 @@ export default class AboutPage extends ThemedElement {
 				max-width: 100%;
 				flex-grow: 1;
 				display: flex;
+				flex-direction: row;
 				align-items: center;
-				line-height: 150%;
+				justify-content: center;
 			}
 
 			#about > * {
@@ -31,10 +36,32 @@ export default class AboutPage extends ThemedElement {
 			}
 
 			#desc {
-				flex: 1;
+				flex: 2;
+				max-width: 600px;
 			}
+
 			#contact {
 				flex: 1;
+				display: grid;
+				grid-template-columns: auto auto 1fr;
+				grid-gap: 4px 8px;
+				align-items: center;
+				--iron-icon-width: 1em;
+				--iron-icon-height: 1em;
+			}
+
+			@media (max-width: 600px), (orientation: portrait) {
+				#about {
+					flex-direction: column;
+				}
+
+				#desc {
+					flex: 0;
+				}
+
+				#contact {
+					flex: 0;
+				}
 			}
 		`];
 	}
@@ -46,9 +73,9 @@ export default class AboutPage extends ThemedElement {
 					${unsafeHTML(description)}
 				</div>
 				<div id="contact">
-					E-Mail: <a href="mailto:${mail}">${mail}</a><br>
-					GitHub: <a href="https://github.com/Cortys">Cortys</a><br>
-					Twitter: <a href="https://twitter.com/Cortosien">@Cortosien</a>
+					<iron-icon icon="mail"></iron-icon><span>E-Mail:</span><a href="mailto:${mail}">${mail}</a>
+					<iron-icon icon="social-media:github"></iron-icon><span> GitHub:</span><a href="https://github.com/Cortys">Cortys</a>
+					<iron-icon icon="social-media:twitter"></iron-icon><span> Twitter:</span><a href="https://twitter.com/Cortosien">@Cortosien</a>
 				</div>
 			</div>
 		`;

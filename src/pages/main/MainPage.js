@@ -58,7 +58,7 @@ export default class MainPage extends routed(LitElement) {
 				z-index: 2;
 			}
 
-			#head > *, #logo {
+			#head > *, #logo, #page {
 				transition: all 0.5s ease-in-out;
 			}
 
@@ -210,7 +210,7 @@ export default class MainPage extends routed(LitElement) {
 				position: absolute;
 				top: var(--head-height);
 				box-sizing: border-box;
-				display: none;
+				opacity: 0;
 				left: 0;
 				right: 0;
 				bottom: 0;
@@ -220,6 +220,7 @@ export default class MainPage extends routed(LitElement) {
 
 			#head.complete ~ #page {
 				display: block;
+				opacity: 1;
 			}
 		`;
 	}
@@ -283,8 +284,10 @@ export default class MainPage extends routed(LitElement) {
 							this.headComplete = true;
 					});
 				}
-				else
+				else {
 					this.headComplete = true;
+					this.vortex.initialized.then(() => this.withVortex = false);
+				}
 			}
 		}
 		else {

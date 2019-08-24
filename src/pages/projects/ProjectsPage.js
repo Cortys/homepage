@@ -15,7 +15,7 @@ export default class ProjectsPage extends ThemedElement {
 			}
 
 			img {
-				max-width: 20vmin;
+				max-width: 12em;
 				image-rendering: pixelated;
 				margin: 16px;
 			}
@@ -25,7 +25,7 @@ export default class ProjectsPage extends ThemedElement {
 	render() {
 		return html`
 			<img src=${gif} alt="">
-			<h2>Coming soon(ish)™.</h2>
+			<h2>Coming soon™.</h2>
 		`;
 	}
 }

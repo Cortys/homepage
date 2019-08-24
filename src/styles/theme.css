@@ -30,3 +30,12 @@ strong, b {
 pre, code {
 	font-family: "Fira Mono", Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace !important;
 }
+
+a {
+	color: var(--red);
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
