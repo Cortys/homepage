@@ -58,7 +58,7 @@ export default class MainPage extends routed(LitElement) {
 				z-index: 2;
 			}
 
-			#head > *, #logo, #page {
+			#head > *, #logo, #page slot {
 				transition: all 0.5s ease-in-out;
 			}
 
@@ -142,6 +142,9 @@ export default class MainPage extends routed(LitElement) {
 			#head #menu {
 				will-change: transform, font-size;
 			}
+			#page slot {
+				will-change: transform;
+			}
 
 			/* With head: */
 
@@ -210,17 +213,29 @@ export default class MainPage extends routed(LitElement) {
 				position: absolute;
 				top: var(--head-height);
 				box-sizing: border-box;
-				opacity: 0;
 				left: 0;
 				right: 0;
 				bottom: 0;
-				overflow: visible;
+				overflow: hidden;
 				z-index: 1;
 			}
 
-			#head.complete ~ #page {
+			#page slot {
+				position: relative;
 				display: block;
-				opacity: 1;
+				left: 0;
+				right: 0;
+				height: 100%;
+				transform: translateY(100%);
+			}
+
+			#head.complete ~ #page {
+				overflow: visible;
+			}
+
+			#head.visible ~ #page slot {
+				transform: translateY(0%);
+				transition-delay: 0.3s;
 			}
 		`;
 	}

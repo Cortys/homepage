@@ -19,7 +19,7 @@ export const router = new Router(undefined, {
 let mainPage;
 
 router.setRoutes([{
-	name: "landing",
+	name: "main",
 	path: "",
 	animate: true,
 	action(_, commands) {
@@ -32,6 +32,10 @@ router.setRoutes([{
 		name: "not-found",
 		path: "(.+)",
 		action: () => undefined
+	}, {
+		name: "landing",
+		path: "",
+		component: "div"
 	}]
 }]);
 
