@@ -1,0 +1,58 @@
+-
+  function loadProject(dir) {
+    const { attributes: meta, body: description } = requireFmMd(`projects/${dir}/description.md`);
+
+    const [ bannerImgName ] = glob("banner.*", { cwd: `projects/${dir}` });
+    const [ mainImgName ] = glob("main.*", { cwd: `projects/${dir}` });
+
+    meta.description = description;
+
+    if(bannerImgName)
+      meta.bannerImgPath = `../../../content/projects/${dir}/${bannerImgName}`;
+
+    if(mainImgName)
+      meta.mainImgPath = `../../../content/projects/${dir}/${mainImgName}`;
+
+    return meta;
+  }
+
+  function loadCategories() {
+    const categories = requireJSON("projects/categories.json");
+
+    return Object.entries(categories).map(([categoryId, category]) => {
+      const projectDirs = glob(category.projectDirs, {
+        cwd: "projects"
+      });
+
+      category.id = categoryId;
+      category.projects = projectDirs.map(loadProject);
+
+      return category;
+    });
+  }
+
+  function loadProjectList() {
+    const categories = loadCategories();
+
+    return categories
+      .flatMap(category => category.projects)
+      .sort((a, b) => b.year - a.year);
+  }
+
+  const projects = loadProjectList();
+
+  console.log(projects);
+
+each p in projects
+  -
+    const attrs = Object.assign({}, p);
+    delete attrs.description;
+    delete attrs.bannerImgPath;
+    delete attrs.mainImgPath;
+
+  project-component&attributes(attrs)
+    if p.bannerImgPath
+      img(src=p.bannerImgPath alt="" slot="bannerImg")
+    if mainImgPath
+      link(href=p.mainImgPath slot="mainImg")
+    div(slot="description")!= p.description

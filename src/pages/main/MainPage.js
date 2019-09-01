@@ -127,6 +127,7 @@ export default class MainPage extends routed(LitElement) {
 			}
 
 			/* Will change: */
+
 			#head #logo-container {
 				will-change: background-color, height;
 			}
@@ -209,6 +210,7 @@ export default class MainPage extends routed(LitElement) {
 			}
 
 			/* Page: */
+
 			#page {
 				position: absolute;
 				top: var(--head-height);
@@ -221,12 +223,17 @@ export default class MainPage extends routed(LitElement) {
 			}
 
 			#page slot {
-				position: relative;
-				display: block;
+				position: absolute;
+				display: flex;
+				justify-content: center;
 				left: 0;
 				right: 0;
 				height: 100%;
 				transform: translateY(100%);
+			}
+
+			#page ::slotted(*) {
+				position: absolute;
 			}
 
 			#head.complete ~ #page {

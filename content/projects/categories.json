@@ -1,0 +1,14 @@
+{
+	"utils": {
+		"title": "Libraries & Tools",
+		"projectDirs": "utils/*"
+	},
+	"experiments": {
+		"title": "Experiments",
+		"projectDirs": "experiments/*"
+	},
+	"early-work": {
+		"title": "Early Work",
+		"projectDirs": "early-work/*"
+	}
+}

@@ -35,11 +35,14 @@
 		"eslint": "^6.2.1",
 		"eslint-config-cortys": "^2.1.1",
 		"eslint-import-resolver-parcel": "^1.10.0",
+		"front-matter": "^3.0.2",
+		"glob": "^7.1.4",
 		"gulp-google-webfonts": "^2.1.0",
 		"marked": "^0.7.0",
 		"parcel-plugin-markdown": "^0.4.2",
 		"parcel-plugin-webcomponents": "^1.2.1",
-		"prismjs": "^1.17.1"
+		"prismjs": "^1.17.1",
+		"pug": "^2.0.4"
 	},
 	"alias": {
 		"content": "./content"
