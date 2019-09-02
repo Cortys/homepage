@@ -220,6 +220,7 @@ export default class MainPage extends routed(LitElement) {
 				bottom: 0;
 				overflow: hidden;
 				z-index: 1;
+				pointer-events: none;
 			}
 
 			#page slot {
@@ -238,6 +239,7 @@ export default class MainPage extends routed(LitElement) {
 
 			#head.complete ~ #page {
 				overflow: visible;
+				pointer-events: auto;
 			}
 
 			#head.visible ~ #page slot {

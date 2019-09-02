@@ -18,6 +18,13 @@ class ProjectComponent extends LitElement {
 				overflow: hidden;
 				background-color: var(--white);
 				box-shadow: var(--black-box-shadow);
+				cursor: pointer;
+				transition: 0.2s all;
+			}
+
+			#card:hover {
+				box-shadow: var(--strong-black-box-shadow);
+				transform: translateY(-2px);
 			}
 
 			#bannerImg {
@@ -25,14 +32,15 @@ class ProjectComponent extends LitElement {
 				display: block;
 				width: 100%;
 				padding-top: 60%;
-				background-color: var(--off-black);
 				overflow: hidden;
 			}
 			#bannerImg::slotted(*) {
 				position: absolute;
 				top: 0;
-				display: block;
+				left: 0;
 				width: 100%;
+				display: block;
+				object-fit: cover;
 			}
 
 			#name {

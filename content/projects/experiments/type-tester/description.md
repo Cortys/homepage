@@ -1,6 +1,6 @@
 ---
 name: Typing Tester
-year: 2017
+date: "2017-03"
 url: https://cortys.github.io/type-tester/resources/public/
 repo: https://github.com/Cortys/type-tester
 ---

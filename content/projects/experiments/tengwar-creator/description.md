@@ -1,6 +1,6 @@
 ---
 name: Tengwar Creator
-year: 2012
+date: "2012-03"
 url: https://cortys.de/quenya/
 ---
 This program transforms texts from the Latin script to Tengwar, more specifically the Ómatehtar mode of Quenya.

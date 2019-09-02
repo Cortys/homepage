@@ -13,6 +13,8 @@
     if(mainImgName)
       meta.mainImgPath = `../../../content/projects/${dir}/${mainImgName}`;
 
+    meta.year = Math.floor((meta.date || "").split("-")[0]);
+
     return meta;
   }
 
@@ -36,7 +38,15 @@
 
     return categories
       .flatMap(category => category.projects)
-      .sort((a, b) => b.year - a.year);
+      .sort((a, b) => {
+        if(a.date < b.date)
+          return 1;
+
+        if(a.date > b.date)
+          return -1;
+
+        return a.name < b.name ? -1 : 1;
+      });
   }
 
   const projects = loadProjectList();

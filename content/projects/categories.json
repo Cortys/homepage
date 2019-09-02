@@ -10,5 +10,9 @@
 	"early-work": {
 		"title": "Early Work",
 		"projectDirs": "early-work/*"
+	},
+	"academical": {
+		"title": "Academical",
+		"projectDirs": "academical/*"
 	}
 }
