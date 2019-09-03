@@ -103,7 +103,7 @@ export default class MainPage extends routed(LitElement) {
 
 			#error {
 				font-size: var(--font-h2-size);
-				pointer-events: none;
+				pointer-events: none !important;
 				opacity: 0;
 			}
 
@@ -177,6 +177,10 @@ export default class MainPage extends routed(LitElement) {
 				pointer-events: none;
 			}
 
+			#head.visible #error {
+				display: none;
+			}
+
 			#head.visible #menu {
 				transform: translateY(calc(-100vh + var(--head-height) - 12px));
 				font-size: var(--font-h4-size);
@@ -199,7 +203,7 @@ export default class MainPage extends routed(LitElement) {
 			}
 
 			#head.error #error {
-				pointer-events: auto;
+				pointer-events: auto !important;
 				opacity: 1;
 			}
 

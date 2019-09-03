@@ -11,6 +11,10 @@
 		"title": "Early Work",
 		"projectDirs": "early-work/*"
 	},
+	"games": {
+		"title": "Games",
+		"projectDirs": "games/*"
+	},
 	"academical": {
 		"title": "Academical",
 		"projectDirs": "academical/*"
