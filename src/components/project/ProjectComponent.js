@@ -47,14 +47,14 @@ class ProjectComponent extends LitElement {
 				position: relative;
 				display: flex;
 				align-items: center;
-				margin: 12px;
+				margin: 8px;
 			}
 
 			#name > * {
 				flex: 1 0;
 			}
 
-			#name > h3 {
+			#name > h4 {
 				font-weight: 300;
 				margin: 0;
 				text-overflow: ellipsis;
@@ -81,7 +81,7 @@ class ProjectComponent extends LitElement {
 		return html`
 			<div id="card">
 				<slot id="bannerImg" name="bannerImg"></slot>
-				<div id="name"><h3 title=${this.name}>${this.name}</h3><span class="year">${this.year}</span></div>
+				<div id="name"><h4 title=${this.name}>${this.name}</h4><span class="year">${this.year}</span></div>
 			</div>
 		`;
 	}
