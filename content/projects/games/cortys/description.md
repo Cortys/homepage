@@ -1,6 +1,6 @@
 ---
 name: Cortys
-date: "2008-10"
+date: "2009-03"
 url: https://play.cortys.de
 ---
 An online multiplayer city building game in a Fantasy setting.

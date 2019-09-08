@@ -1,6 +1,6 @@
 ---
 name: Li-Minns Magieschule 2
-date: "2011-03"
+date: "2011-05"
 url: https://cortys.de/magie2
 ---
 The successor to *Li-Minns Magieschule*.

@@ -4,6 +4,7 @@ import { unsafeHTML } from "lit-html/directives/unsafe-html";
 import ThemedElement from "../../ThemedElement";
 import "../../components/project/ProjectComponent";
 import projects from "./projects.pug";
+import footer from "./footer.svg";
 
 const projectCount = [...projects.matchAll(/<project-component/g)].length;
 
@@ -35,6 +36,16 @@ export default class ProjectsPage extends ThemedElement {
 				height: 0;
 				margin: 0 8px;
 			}
+
+			#foot {
+				display: flex;
+				justify-content: center;
+				margin: 64px;
+			}
+
+			#foot img {
+				cursor: pointer;
+			}
 		`];
 	}
 
@@ -43,6 +54,9 @@ export default class ProjectsPage extends ThemedElement {
 			<div id="projects">
 				${unsafeHTML(projects)}
 				${projectCount > 2 ? html`<div class="dummy"></div><div class="dummy"></div>` : ""}
+			</div>
+			<div id="foot">
+				<img src="${footer}" alt="" @click=${() => window.scrollTo({ top: 0, behavior: "smooth" })} title="Back to top">
 			</div>
 		`;
 	}

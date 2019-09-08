@@ -1,5 +1,5 @@
 ---
-name: Li-Minns Magieschule 1
+name: Li-Minns Magieschule
 date: "2008-06"
 url: https://magie.la-mann.com
 ---

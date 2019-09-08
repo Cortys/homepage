@@ -62,7 +62,7 @@ each p in projects
 
   project-component&attributes(attrs)
     if p.bannerImgPath
-      img(src=p.bannerImgPath alt="" slot="bannerImg")
+      img(src=p.bannerImgPath alt="" slot="bannerImg" loading="auto")
     if mainImgPath
       link(href=p.mainImgPath slot="mainImg")
     div(slot="description")!= p.description
