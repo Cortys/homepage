@@ -16,6 +16,7 @@ const dentNormalize = 5000;
 const newRippleMinDistance = 10;
 const newRippleMinDistanceSquared = newRippleMinDistance ** 2;
 const newRippleMinDelay = 0.02;
+const newRippleMaxDelay = 0.5;
 const waveIntensity = 0.05;
 const maxDepth = cameraDepth + noiseIntensity + 2 * rippleIntensity + waveIntensity;
 const noCursorPosition = new THREE.Vector2(-1, -1);
@@ -349,6 +350,11 @@ class VortexComponent extends LitElement {
 			this.resizeListener = undefined;
 		}
 
+		if(this.enterListener) {
+			window.removeEventListener(moveEvent, this.enterListener);
+			this.enterListener = undefined;
+		}
+
 		if(this.moveListener) {
 			window.removeEventListener(moveEvent, this.moveListener);
 			this.moveListener = undefined;
@@ -453,6 +459,13 @@ class VortexComponent extends LitElement {
 			params.cursorPosition.value = noCursorPosition;
 		};
 
+		const addRipple = (time, position, intensity) => {
+			ripples[currentRippleIdx] = new Ripple(time, position, intensity);
+
+			if(++currentRippleIdx >= ripples.length)
+				currentRippleIdx = 0;
+		};
+
 		const moveListener = e => {
 			const p = isTouch ? e.touches[0] : e;
 
@@ -469,21 +482,27 @@ class VortexComponent extends LitElement {
 				? [cursorPosition.distanceToSquared(prevRipple.position), time - prevRipple.time]
 				: [Infinity, Infinity];
 
-			if(Δd >= newRippleMinDistanceSquared && Δt >= newRippleMinDelay) {
-				ripples[currentRippleIdx] = new Ripple(time, cursorPosition, Math.pow(Δd, 1 / 3) / 500);
+			if(Δd >= newRippleMinDistanceSquared && Δt >= newRippleMinDelay)
+				addRipple(time, cursorPosition, Δt > newRippleMaxDelay ? 0 : Math.pow(Δd, 1 / 3) / 500);
+		};
 
-				if(++currentRippleIdx >= ripples.length)
-					currentRippleIdx = 0;
-			}
+		const enterListener = e => {
+			cursorPosition = new THREE.Vector2(e.clientX, e.clientY);
+			addRipple(clock.elapsedTime, cursorPosition, 0);
 		};
 
 		window.addEventListener("resize", resizeListener, false);
+		window.addEventListener("mouseover", enterListener, {
+			passive: true,
+			capture: true
+		});
 		window.addEventListener(moveEvent, moveListener, {
 			passive: true,
 			capture: true
 		});
 
 		this.resizeListener = resizeListener;
+		this.enterListener = enterListener;
 		this.moveListener = moveListener;
 	}
 

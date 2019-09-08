@@ -19,6 +19,10 @@ async function transitionEnd(el, timeout) {
 	});
 }
 
+function recursePageName(route) {
+	return route && (route.name || recursePageName(route.parent));
+}
+
 export default class MainPage extends routed(LitElement) {
 	static get properties() {
 		return {
@@ -254,7 +258,7 @@ export default class MainPage extends routed(LitElement) {
 	}
 
 	get currentPageName() {
-		return this.currentLocation.route.name;
+		return recursePageName(this.currentLocation.route).split("/")[0];
 	}
 
 	get headVisible() {

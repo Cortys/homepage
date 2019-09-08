@@ -84,7 +84,7 @@ class MenuComponent extends LitElement {
 
 	render() {
 		return html`
-			${menuEntries.map(({ name }) => html`
+			${menuEntries.filter(entry => !entry.hidden).map(({ name }) => html`
 				<a href="${router.urlForName(name)}" class=${classMap({
 					active: this.currentPageName === name
 				})}><span>${name}</span></a>

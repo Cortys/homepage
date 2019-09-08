@@ -10,6 +10,12 @@ export const menuEntries = [{
 	path: "projects",
 	component: "projects-page",
 	action: () => import("./pages/projects/ProjectsPage")
+}, {
+	name: "Projects/?",
+	hidden: true,
+	path: "projects/:id?",
+	component: "project-page",
+	action: () => import("./pages/projects/ProjectPage")
 }];
 
 export const router = new Router(undefined, {

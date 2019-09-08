@@ -5,6 +5,7 @@
     const [ bannerImgName ] = glob("banner.*", { cwd: `projects/${dir}` });
     const [ mainImgName ] = glob("main.*", { cwd: `projects/${dir}` });
 
+    meta.id = dir.split("/")[1];
     meta.description = description;
 
     if(bannerImgName)

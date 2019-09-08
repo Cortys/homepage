@@ -1,8 +1,11 @@
 import { LitElement, html, css } from "lit-element";
 
+import { router } from "../../router";
+
 class ProjectComponent extends LitElement {
 	static get properties() {
 		return {
+			id: String,
 			name: String,
 			year: Number,
 			url: String,
@@ -12,17 +15,23 @@ class ProjectComponent extends LitElement {
 
 	static get styles() {
 		return css`
+			a {
+				display: block;
+				position: relative;
+				color: inherit;
+				text-decoration: inherit;
+			}
+
 			#card {
 				position: relative;
 				border-radius: 4px;
 				overflow: hidden;
 				background-color: var(--white);
 				box-shadow: var(--black-box-shadow);
-				cursor: pointer;
 				transition: 0.2s all;
 			}
 
-			#card:hover {
+			a:hover #card {
 				box-shadow: var(--strong-black-box-shadow);
 				transform: translateY(-2px);
 			}
@@ -56,6 +65,7 @@ class ProjectComponent extends LitElement {
 
 			#name > h4 {
 				font-weight: 300;
+				flex: 1 1;
 				margin: 0;
 				text-overflow: ellipsis;
 				white-space: nowrap;
@@ -64,6 +74,7 @@ class ProjectComponent extends LitElement {
 
 			#name > .year {
 				flex: 0 0;
+				font-size: 85%;
 				background-color: var(--beige);
 				color: var(--white);
 				padding: 4px 8px;
@@ -79,6 +90,7 @@ class ProjectComponent extends LitElement {
 
 	render() {
 		return html`
+			<a href="${router.urlForPath("projects/:id", { id: this.id })}">
 			<div id="card">
 				<slot id="bannerImg" name="bannerImg"></slot>
 				<div id="name"><h4 title=${this.name}>${this.name}</h4><span class="year">${this.year}</span></div>
