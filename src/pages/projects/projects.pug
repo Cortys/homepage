@@ -57,9 +57,9 @@ each p in projects
     delete attrs.bannerImgPath;
     delete attrs.mainImgPath;
 
-  //project
+  | {project}
   != JSON.stringify(attrs)
-  //content
+  | {content}
   link(name="bannerImgPath" href=p.bannerImgPath)
   link(name="mainImgPath" href=p.mainImgPath)
   div(name="description")!= p.description

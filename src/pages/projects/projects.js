@@ -1,7 +1,9 @@
 import projectsRaw from "./projects.pug";
 
+console.log(projectsRaw);
+
 function parseProject(projectRaw) {
-	const res = projectRaw.match(/^(.*)<!--content--><link name="bannerImgPath" href="(.*?)"><link name="mainImgPath" href="(.*?)"><div name="description">([^]*)<\/div>$/m);
+	const res = projectRaw.match(/^(.*){content}<link name="bannerImgPath" href="(.*?)"><link name="mainImgPath" href="(.*?)"><div name="description">([^]*)<\/div>$/m);
 
 	if(!res)
 		return;
@@ -16,7 +18,7 @@ function parseProject(projectRaw) {
 	};
 }
 
-export const projectsArray = projectsRaw.split("<!--project-->").map(parseProject).filter(p => p);
+export const projectsArray = projectsRaw.split("{project}").map(parseProject).filter(p => p);
 export const projects = new Map();
 
 for(const project of projectsArray)
