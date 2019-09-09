@@ -18,7 +18,7 @@ export default class AboutPage extends ThemedElement {
 				height: 100%;
 				align-items: center;
 				box-sizing: border-box;
-				line-height: 180%;
+				line-height: 1.8 !important;
 			}
 
 			#about {

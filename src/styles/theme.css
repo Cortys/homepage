@@ -5,10 +5,12 @@ h1, h2, h3, h4 {
 
 h1 {
 	font-size: var(--font-h1-size);
+	font-weight: 300;
 }
 
 h2 {
 	font-size: var(--font-h2-size);
+	font-weight: 300;
 }
 
 h3 {
@@ -29,6 +31,7 @@ strong, b {
 
 pre, code {
 	font-family: "Fira Mono", Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace !important;
+	font-size: 90%;
 }
 
 a {
@@ -38,4 +41,13 @@ a {
 
 a:hover {
 	text-decoration: underline;
+}
+
+ul {
+	list-style: square;
+	padding-left: 1.5em;
+}
+
+li {
+	margin: 8px;
 }

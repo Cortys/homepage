@@ -8,8 +8,8 @@ The **O**bject **W**eb **E**xposer is essentially a JavaScript RPC library to bu
 owe.js dynamically builds a mutable object graph that can be configured to automatically align to an application's internal object graph.
 This overlay graph can be exposed via various protocols.
 
-A usable core implementation is completed.
-However I decided to put this project on hold because of some of the [inherent problems of the RPC paradigm](http://blog.carlosgaldino.com/a-critique-of-the-remote-procedure-call-paradigm-30-years-later.html).
+A usable core implementation has been completed.
+However I decided to put this project on hold because making remote object access fully transparent [might not actually be a good idea](http://blog.carlosgaldino.com/a-critique-of-the-remote-procedure-call-paradigm-30-years-later.html).
 
 The core ideas I explored in this project were:
 - Translating interactions with JavaScript objects into intuitive interactions with protocols like HTTP, WebSockets, zmq...

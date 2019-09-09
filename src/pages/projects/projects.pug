@@ -1,6 +1,7 @@
 -
   function loadProject(dir) {
-    const { attributes: meta, body: description } = requireFmMd(`projects/${dir}/description.md`);
+    const prefix = `../../../content/projects/${dir}/`;
+    const { attributes: meta, body: description } = requireFmMd(`projects/${dir}/description.md`, prefix);
 
     const [ bannerImgName ] = glob("banner.*", { cwd: `projects/${dir}` });
     const [ mainImgName ] = glob("main.*", { cwd: `projects/${dir}` });
@@ -8,11 +9,8 @@
     meta.id = dir.split("/")[1];
     meta.description = description;
 
-    if(bannerImgName)
-      meta.bannerImgPath = `../../../content/projects/${dir}/${bannerImgName}`;
-
-    if(mainImgName)
-      meta.mainImgPath = `../../../content/projects/${dir}/${mainImgName}`;
+    meta.bannerImgPath = bannerImgName ? `${prefix}${bannerImgName}` : "";
+    meta.mainImgPath = mainImgName ? `${prefix}${mainImgName}` : "";
 
     meta.year = Math.floor((meta.date || "").split("-")[0]);
 
@@ -52,8 +50,6 @@
 
   const projects = loadProjectList();
 
-  console.log(projects);
-
 each p in projects
   -
     const attrs = Object.assign({}, p);
@@ -61,9 +57,9 @@ each p in projects
     delete attrs.bannerImgPath;
     delete attrs.mainImgPath;
 
-  project-component&attributes(attrs)
-    if p.bannerImgPath
-      img(src=p.bannerImgPath alt="" slot="bannerImg" loading="auto")
-    if mainImgPath
-      link(href=p.mainImgPath slot="mainImg")
-    div(slot="description")!= p.description
+  //project
+  != JSON.stringify(attrs)
+  //content
+  link(name="bannerImgPath" href=p.bannerImgPath)
+  link(name="mainImgPath" href=p.mainImgPath)
+  div(name="description")!= p.description

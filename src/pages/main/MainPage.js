@@ -243,6 +243,7 @@ export default class MainPage extends routed(LitElement) {
 
 			#page ::slotted(*) {
 				position: absolute;
+				line-height: 1.5;
 			}
 
 			#head.complete ~ #page {

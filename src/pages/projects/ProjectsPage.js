@@ -1,12 +1,9 @@
 import { html, css } from "lit-element";
-import { unsafeHTML } from "lit-html/directives/unsafe-html";
 
 import ThemedElement from "../../ThemedElement";
 import "../../components/project/ProjectComponent";
-import projects from "./projects.pug";
+import { projectsArray } from "./projects";
 import footer from "./footer.svg";
-
-const projectCount = [...projects.matchAll(/<project-component/g)].length;
 
 export default class ProjectsPage extends ThemedElement {
 	static get styles() {
@@ -52,8 +49,10 @@ export default class ProjectsPage extends ThemedElement {
 	render() {
 		return html`
 			<div id="projects">
-				${unsafeHTML(projects)}
-				${projectCount > 2 ? html`<div class="dummy"></div><div class="dummy"></div>` : ""}
+				${projectsArray.map(project => html`
+					<project-component id=${project.id} .project=${project}></project-component>
+				`)}
+				${projectsArray.length > 2 ? html`<div class="dummy"></div><div class="dummy"></div>` : ""}
 			</div>
 			<div id="foot">
 				<img src="${footer}" alt="" @click=${() => window.scrollTo({ top: 0, behavior: "smooth" })} title="Back to top">

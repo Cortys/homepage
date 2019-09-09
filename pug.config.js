@@ -20,16 +20,16 @@ function requireJSON(p) {
 	return JSON.parse(requireRaw(p));
 }
 
-function requireMd(p) {
-	return marked(requireRaw(p), markedConfig);
+function requireMd(p, baseUrl) {
+	return marked(requireRaw(p), { ...markedConfig, baseUrl });
 }
 
-function requireFmMd(p) {
+function requireFmMd(p, baseUrl) {
 	const { body, attributes } = fm(requireRaw(p));
 
 	return {
 		attributes,
-		body: marked(body, markedConfig)
+		body: marked(body, { ...markedConfig, baseUrl })
 	};
 }
 

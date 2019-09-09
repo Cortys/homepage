@@ -13,7 +13,7 @@ export const menuEntries = [{
 }, {
 	name: "Projects/?",
 	hidden: true,
-	path: "projects/:id?",
+	path: "projects/:id",
 	component: "project-page",
 	action: () => import("./pages/projects/ProjectPage")
 }];
@@ -71,3 +71,15 @@ export const routed = c => class extends c {
 		window.removeEventListener("vaadin-router-location-changed", this._routedCallback);
 	}
 };
+
+let lastClickedProject;
+
+export function projectClicked(projectElement) {
+	lastClickedProject = projectElement;
+}
+
+export function getLastClickedProject() {
+	return lastClickedProject;
+}
+
+window.addEventListener("vaadin-router-location-changed", () => lastClickedProject = undefined);

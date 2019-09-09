@@ -1,15 +1,11 @@
 import { LitElement, html, css } from "lit-element";
 
-import { router } from "../../router";
+import { router, projectClicked } from "../../router";
 
 class ProjectComponent extends LitElement {
 	static get properties() {
 		return {
-			id: String,
-			name: String,
-			year: Number,
-			url: String,
-			repo: String
+			project: Object
 		};
 	}
 
@@ -29,6 +25,7 @@ class ProjectComponent extends LitElement {
 				background-color: var(--white);
 				box-shadow: var(--black-box-shadow);
 				transition: 0.2s all;
+				line-height: normal;
 			}
 
 			a:hover #card {
@@ -43,7 +40,7 @@ class ProjectComponent extends LitElement {
 				padding-top: 60%;
 				overflow: hidden;
 			}
-			#bannerImg::slotted(*) {
+			#bannerImg > img {
 				position: absolute;
 				top: 0;
 				left: 0;
@@ -84,18 +81,23 @@ class ProjectComponent extends LitElement {
 		`;
 	}
 
-	get mainImgUrl() {
-		return this.querySelector("[slot=mainImg]").href;
-	}
-
 	render() {
+		const project = this.project;
+
+		if(!project)
+			return "";
+
 		return html`
-			<a href="${router.urlForPath("projects/:id", { id: this.id })}">
+			<a href="${router.urlForPath("projects/:id", { id: project.id })}" @click=${this.clicked}>
 			<div id="card">
-				<slot id="bannerImg" name="bannerImg"></slot>
-				<div id="name"><h4 title=${this.name}>${this.name}</h4><span class="year">${this.year}</span></div>
+				<div id="bannerImg"><img src="${project.bannerImgPath}" alt="" loading="auto"></div>
+				<div id="name"><h4 title=${project.name}>${project.name}</h4><span class="year">${project.year}</span></div>
 			</div>
 		`;
+	}
+
+	clicked() {
+		projectClicked(this);
 	}
 }
 
