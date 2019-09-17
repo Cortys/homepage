@@ -19,6 +19,10 @@ const potentialActions = {
 		label: "Read",
 		icon: "description"
 	},
+	docs: {
+		label: "Docs",
+		icon: "chrome-reader-mode"
+	},
 	download: {
 		label: "Download",
 		icon: "file-download",
