@@ -26,7 +26,8 @@ const potentialActions = {
 	download: {
 		label: "Download",
 		icon: "file-download",
-		target: "_self"
+		target: "_self",
+		download: true
 	},
 	repo: {
 		label: "Repo",
@@ -169,9 +170,9 @@ export default class ProjectPage extends ThemedElement {
 					${Object.keys(potentialActions)
 						.filter(key => project[key])
 						.map(key => {
-							const { label, icon, target } = potentialActions[key];
+							const { label, icon, target, download } = potentialActions[key];
 
-							return html`<a href=${project[key]} target=${target || "_blank"} tabindex="-1"><paper-button><iron-icon icon=${icon}></iron-icon>${label}</paper-button></a>`;
+							return html`<a href=${project[key]} target=${target || "_blank"} tabindex="-1" ?download=${download}><paper-button><iron-icon icon=${icon}></iron-icon>${label}</paper-button></a>`;
 						})}
 				</div>
 				<article id="description">${unsafeHTML(project.description)}</article>

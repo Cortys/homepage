@@ -22,7 +22,7 @@
 		"@polymer/iron-icons": "^3.0.1",
 		"@polymer/paper-button": "^3.0.1",
 		"@polymer/paper-icon-button": "^3.0.2",
-		"@vaadin/router": "^1.4.1",
+		"@vaadin/router": "^1.4.3",
 		"lit-element": "^2.2.1",
 		"lit-html": "^1.1.2",
 		"node-sass": "^4.12.0",
@@ -30,14 +30,14 @@
 		"smoothscroll-polyfill": "^0.4.4",
 		"src": "^1.1.2",
 		"three": "^0.108.0",
-		"three-orbitcontrols": "^2.102.2"
+		"three-orbitcontrols": "^2.108.1"
 	},
 	"devDependencies": {
 		"babel-core": "^6.26.3",
 		"babel-preset-env": "^1.7.0",
-		"eslint": "^6.3.0",
+		"eslint": "^6.4.0",
 		"eslint-config-cortys": "^2.1.1",
-		"eslint-import-resolver-parcel": "^1.10.0",
+		"eslint-import-resolver-parcel": "^1.10.1",
 		"front-matter": "^3.0.2",
 		"glob": "^7.1.4",
 		"gulp-google-webfonts": "^2.1.0",
