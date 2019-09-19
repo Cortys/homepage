@@ -1,6 +1,7 @@
 ---
 name: Librarian
 date: "2019-06"
-repo: https://github.com/dice-group/ida/tree/master/librarian
+docs: https://github.com/dice-group/ida/blob/08498abe2ad6390057406eb456c47c2ff8de4495/librarian/README.md
+repo: https://github.com/dice-group/ida/tree/08498abe2ad6390057406eb456c47c2ff8de4495/librarian
 ---
 Librarian is a modular toolkit to programmatically work with software libraries.
