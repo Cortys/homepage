@@ -49,6 +49,10 @@ export function goHome() {
 	Router.go(router.urlForName("landing"));
 }
 
+export function goProjects() {
+	Router.go(router.urlForName("Projects"));
+}
+
 export const routed = c => class extends c {
 	connectedCallback() {
 		super.connectedCallback();
@@ -82,4 +86,6 @@ export function getLastClickedProject() {
 	return lastClickedProject;
 }
 
-window.addEventListener("vaadin-router-location-changed", () => lastClickedProject = undefined);
+window.addEventListener("vaadin-router-location-changed", () => {
+	lastClickedProject = undefined;
+});

@@ -7,7 +7,7 @@ import "@polymer/paper-button";
 import "@polymer/paper-icon-button";
 
 import ThemedElement from "../../ThemedElement";
-import { getLastClickedProject } from "../../router";
+import { goProjects, getLastClickedProject } from "../../router";
 import { projects } from "./projects";
 
 const potentialActions = {
@@ -159,7 +159,7 @@ export default class ProjectPage extends ThemedElement {
 		return html`
 			<div id="project">
 				<header>
-					<h2 id="back">&#8203;<paper-icon-button icon="arrow-back" @click=${() => window.history.back()}></paper-icon-button></h2>
+					<h2 id="back">&#8203;<paper-icon-button icon="arrow-back" @click=${this.backClicked}></paper-icon-button></h2>
 					<h2 id="name">${project.name}</h2>
 					<h2 id="year">&#8203;<span>${project.year}</span></h2>
 				</header>
@@ -193,6 +193,16 @@ export default class ProjectPage extends ThemedElement {
 
 		this.scrollUp = false;
 		window.scrollTo({ top: 0 });
+		window.history.replaceState({
+			cameFromProjects: true
+		}, document.title, window.location);
+	}
+
+	backClicked() {
+		if(window.history.state && window.history.state.cameFromProjects)
+			window.history.back();
+		else
+			goProjects();
 	}
 }
 
