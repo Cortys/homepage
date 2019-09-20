@@ -1,9 +1,9 @@
 @font-face {
-	font-family: 'Fira Mono';
+	font-family: 'Fira Code';
 	font-style: normal;
 	font-weight: 400;
 	font-display: auto;
-	src: local('Fira Mono Regular'), local('FiraMono-Regular'), url(Fira_Mono-normal-400.woff) format('woff');
+	src: url(Fira_Code-normal-400.woff) format('woff');
 	unicode-range: U+0-10FFFF;
 }
 

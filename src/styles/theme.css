@@ -30,7 +30,7 @@ strong, b {
 }
 
 pre, code {
-	font-family: "Fira Mono", Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace !important;
+	font-family: "Fira Code", Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace !important;
 	font-size: 90%;
 }
 
