@@ -42,7 +42,7 @@
 		"gulp-google-webfonts": "^2.1.0",
 		"marked": "markedjs/marked#bbc4576d3282be8d8e9762bb3308497b47fce7b5",
 		"parcel-plugin-markdown": "^0.4.2",
-		"parcel-plugin-webcomponents": "^1.2.1",
+		"parcel-plugin-webcomponents": "^1.2.2",
 		"prismjs": "^1.17.1",
 		"pug": "^2.0.4"
 	},
