@@ -2,8 +2,6 @@ import { LitElement, html, css } from "lit-element";
 
 import footer from "./footer.svg";
 
-console.log(footer);
-
 class FootComponent extends LitElement {
 	static get styles() {
 		return css`

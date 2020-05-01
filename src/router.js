@@ -18,9 +18,14 @@ export const menuEntries = [{
 	action: () => import("./pages/projects/ProjectPage")
 }];
 
+const baseUrl = process.env.PUBLIC_PATH || "/";
+
 export const router = new Router(undefined, {
-	baseUrl: process.env.PUBLIC_PATH || "/"
+	baseUrl
 });
+
+if(!window.location.pathname.startsWith(baseUrl))
+	window.history.pushState({}, "", router.urlForPath(window.location.pathname));
 
 let mainPage;
 
