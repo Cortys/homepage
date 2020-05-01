@@ -28,6 +28,8 @@ class LogoComponent extends LitElement {
 				width: 460px;
 				height: 460px;
 				overflow: hidden;
+				-webkit-tap-highlight-color: rgba(0,0,0,0);
+			    -webkit-tap-highlight-color: transparent;
 			}
 
 			#logo {

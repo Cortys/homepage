@@ -39,6 +39,8 @@ class MenuComponent extends LitElement {
 				color: inherit;
 				text-decoration: none;
 				margin: 0 12px;
+				-webkit-tap-highlight-color: rgba(0,0,0,0);
+			    -webkit-tap-highlight-color: transparent;
 			}
 
 			a span {

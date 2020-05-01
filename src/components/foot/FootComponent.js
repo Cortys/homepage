@@ -9,6 +9,8 @@ class FootComponent extends LitElement {
 				display: flex;
 				justify-content: center;
 				margin: 64px;
+				-webkit-tap-highlight-color: rgba(0,0,0,0);
+			    -webkit-tap-highlight-color: transparent;
 			}
 
 			#foot img {
