@@ -16,7 +16,7 @@ function parseProject(projectRaw) {
 	};
 }
 
-export const projectsArray = projectsRaw.split("{project}").map(parseProject).filter(p => p);
+export const projectsArray = projectsRaw.split("{project}").map(parseProject).filter(p => p != null);
 export const projects = new Map();
 
 for(const project of projectsArray)

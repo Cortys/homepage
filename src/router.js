@@ -37,7 +37,7 @@ router.setRoutes([{
 	children: [...menuEntries, {
 		name: "not-found",
 		path: "(.+)",
-		action: () => undefined
+		component: "div"
 	}, {
 		name: "landing",
 		path: "",
@@ -86,6 +86,9 @@ export function getLastClickedProject() {
 	return lastClickedProject;
 }
 
-window.addEventListener("vaadin-router-location-changed", () => {
+window.addEventListener("vaadin-router-location-changed", ({ detail: { location: { route } } }) => {
+	if(route != null && route.name === "Projects/?") // Preserve history for direct inter-project navigation.
+		return;
+
 	lastClickedProject = undefined;
 });

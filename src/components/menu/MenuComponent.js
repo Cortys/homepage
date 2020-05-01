@@ -63,7 +63,7 @@ class MenuComponent extends LitElement {
 				width: 16px;
 				height: 8px;
 				background: url('${unsafeCSS(triangle)}');
-				top: 100%;
+				top: 98%;
 				left: calc(50% - 8px);
 				content: '';
 				transform: translateY(0px);

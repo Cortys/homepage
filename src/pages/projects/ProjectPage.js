@@ -177,6 +177,7 @@ export default class ProjectPage extends ThemedElement {
 				</div>
 				<article id="description">${unsafeHTML(project.description)}</article>
 			</div>
+			<foot-component></foot-component>
 		`;
 	}
 

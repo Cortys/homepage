@@ -91,7 +91,7 @@ class ProjectComponent extends LitElement {
 			<a href="${router.urlForPath("projects/:id", { id: project.id })}" @click=${this.clicked}>
 			<div id="card">
 				<div id="bannerImg"><img src="${project.bannerImgPath}" alt="" loading="auto"></div>
-				<div id="name"><h4 title=${project.name}>${project.name}</h4><span class="year">${project.year}</span></div>
+				<div id="name"><h4 title=${project.name}>${project.shortname || project.name}</h4><span class="year">${project.year}</span></div>
 			</div>
 		`;
 	}

@@ -1,5 +1,18 @@
 import { LitElement, html, css } from "lit-element";
-import * as THREE from "three";
+import {
+	Vector2, Vector3,
+	MeshStandardMaterial,
+	Scene,
+	RingGeometry,
+	Mesh,
+	LineSegments,
+	AmbientLight,
+	PointLight,
+	SpotLight,
+	WebGLRenderer,
+	PerspectiveCamera,
+	Clock
+} from "three";
 // import OrbitControls from "three-orbitcontrols";
 
 const objectRadius = 4.5;
@@ -19,7 +32,7 @@ const newRippleMinDelay = 0.02;
 const newRippleMaxDelay = 0.5;
 const waveIntensity = 0.05;
 const maxDepth = cameraDepth + noiseIntensity + 2 * rippleIntensity + waveIntensity;
-const noCursorPosition = new THREE.Vector2(-1, -1);
+const noCursorPosition = new Vector2(-1, -1);
 const isTouch = "ontouchstart" in window || navigator.msMaxTouchPoints > 0;
 const moveEvent = isTouch ? "touchmove" : "mousemove";
 const maxRipples = isTouch ? 32 : 128;
@@ -50,7 +63,7 @@ function createNoise(geometry) {
 }
 
 class Ripple {
-	constructor(time = 0, position = new THREE.Vector2(0, 0), intensity = 0) {
+	constructor(time = 0, position = new Vector2(0, 0), intensity = 0) {
 		this.time = time;
 		this.position = position;
 		this.intensity = intensity;
@@ -249,14 +262,16 @@ function rippleVertexShader(shader, params, { maxRipples }) {
 }
 
 function createRippleMaterial(config, params, consts) {
-	return new THREE.MeshStandardMaterial({
+	return new MeshStandardMaterial({
+		roughness: 0.5,
+		metalness: 0.5,
 		...config,
 		onBeforeCompile: shader => rippleVertexShader(shader, params, consts)
 	});
 }
 
 function createScene() {
-	const scene = new THREE.Scene();
+	const scene = new Scene();
 
 	// Materials:
 	const consts = {
@@ -274,8 +289,8 @@ function createScene() {
 
 	// Geometry:
 
-	const geometry = new THREE.RingGeometry(Number.MIN_VALUE, objectRadius, 64, radiusSegments);
-	const axis = new THREE.Vector3(0, 0, 1);
+	const geometry = new RingGeometry(Number.MIN_VALUE, objectRadius, 64, radiusSegments);
+	const axis = new Vector3(0, 0, 1);
 	const noise = createNoise(geometry);
 
 	geometry.vertices.forEach((v, i) => {
@@ -284,16 +299,16 @@ function createScene() {
 	});
 	geometry.verticesNeedUpdate = true;
 
-	const mesh = new THREE.Mesh(geometry, material);
-	const wireframe = new THREE.LineSegments(geometry, wireMaterial);
+	const mesh = new Mesh(geometry, material);
+	const wireframe = new LineSegments(geometry, wireMaterial);
 
 	mesh.add(wireframe);
 
 	// Lights:
 
-	const ambient = new THREE.AmbientLight(0x2c37c4, 0.1);
-	const point = new THREE.PointLight(0x2c37c4, 0.5);
-	const spot = new THREE.SpotLight(0xc42c2d, 1.5);
+	const ambient = new AmbientLight(0x2c37c4, 0.1);
+	const point = new PointLight(0x2c37c4, 0.5);
+	const spot = new SpotLight(0xc42c2d, 1.5);
 
 	point.position.z = 10;
 	spot.position.z = 10;
@@ -324,7 +339,7 @@ class VortexComponent extends LitElement {
 		this.burstProgress = 0;
 		this.delayGlowChangeBy = 0;
 
-		const renderer = new THREE.WebGLRenderer({
+		const renderer = new WebGLRenderer({
 			antialias: true,
 			alpha: true
 		});
@@ -372,7 +387,7 @@ class VortexComponent extends LitElement {
 		const ripples = params.ripples.value;
 		const bursts = params.bursts.value;
 		let size = getSize();
-		const camera = new THREE.PerspectiveCamera(...computeCameraSettings(size), 0.1, 6);
+		const camera = new PerspectiveCamera(...computeCameraSettings(size), 0.1, 6);
 
 		this.renderer.setPixelRatio(window.devicePixelRatio);
 		this.renderer.setSize(size.width, size.height);
@@ -390,7 +405,7 @@ class VortexComponent extends LitElement {
 
 		// new OrbitControls(camera, this.renderer.domElement); // eslint-disable-line no-new
 
-		const clock = new THREE.Clock();
+		const clock = new Clock();
 
 		const animate = first => {
 			this._animationId = requestAnimationFrame(animate);
@@ -469,7 +484,7 @@ class VortexComponent extends LitElement {
 		const moveListener = e => {
 			const p = isTouch ? e.touches[0] : e;
 
-			cursorPosition = new THREE.Vector2(p.clientX, p.clientY);
+			cursorPosition = new Vector2(p.clientX, p.clientY);
 			params.cursorPosition.value = cursorPosition;
 
 			const time = clock.elapsedTime;
@@ -487,7 +502,7 @@ class VortexComponent extends LitElement {
 		};
 
 		const enterListener = e => {
-			cursorPosition = new THREE.Vector2(e.clientX, e.clientY);
+			cursorPosition = new Vector2(e.clientX, e.clientY);
 			addRipple(clock.elapsedTime, cursorPosition, 0);
 		};
 
@@ -582,6 +597,10 @@ class VortexComponent extends LitElement {
 		this.delayGlowChangeBy = 0;
 
 		return prevBurstMode !== "explode";
+	}
+
+	centerShock() {
+		console.log("test");
 	}
 }
 

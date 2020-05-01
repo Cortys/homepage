@@ -4,6 +4,7 @@ import { classMap } from "lit-html/directives/class-map";
 import "../../components/logo/LogoComponent";
 import "../../components/menu/MenuComponent";
 import "../../components/vortex/VortexComponent";
+import "../../components/foot/FootComponent";
 import { goHome, routed } from "../../router";
 
 async function transitionEnd(el, timeout) {
@@ -138,6 +139,7 @@ export default class MainPage extends routed(LitElement) {
 
 			#head #logo {
 				will-change: transform, width, height;
+				pointer-events: auto;
 			}
 
 			#head #title {
@@ -273,6 +275,10 @@ export default class MainPage extends routed(LitElement) {
 		return this.currentPageName === "not-found";
 	}
 
+	get landingVisible() {
+		return this.currentPageName === "landing";
+	}
+
 	render() {
 		const headVisible = this.headVisible;
 		const headComplete = this.headComplete;
@@ -286,7 +292,7 @@ export default class MainPage extends routed(LitElement) {
 				complete: headComplete
 			})}>
 				<div id="logo-container">
-					<logo-component id="logo" @click=${goHome}></logo-component>
+					<logo-component id="logo" @click=${this.onLogoClick}></logo-component>
 				</div>
 				<h1 id="title">Clemens Damke</h1>
 				<h2 id="error">This is not the page you are looking for.</h2>
@@ -346,6 +352,11 @@ export default class MainPage extends routed(LitElement) {
 			this.vortex.glowUp();
 		else
 			this.vortex.glowDown();
+	}
+
+	onLogoClick() {
+		if(!this.landingVisible)
+			goHome();
 	}
 
 	onExplosionComplete() {
