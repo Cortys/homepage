@@ -70,6 +70,12 @@ class Ripple {
 	}
 }
 
+class Shock {
+	constructor(time = 0) {
+		this.time = time;
+	}
+}
+
 class Burst {
 	constructor(
 		frequency = 0,
@@ -122,6 +128,9 @@ function createRippleParams({ maxRipples }) {
 		ripples: {
 			value: Array(maxRipples).fill(new Ripple())
 		},
+		shocks: {
+			value: [new Shock(), new Shock()]
+		},
 		bursts: {
 			value: burstFrequencies.map(f => new Burst(f))
 		}
@@ -134,6 +143,7 @@ function rippleVertexShader(shader, params, { maxRipples }) {
 	const newVertexShader = `
 		#define M_PI 3.1415926535897932384626433832795
 		#define MAX_RIPPLES ${maxRipples}
+		#define MAX_SHOCKS 2
 
 		uniform vec2 size;
 		uniform float time;
@@ -148,6 +158,11 @@ function rippleVertexShader(shader, params, { maxRipples }) {
 			float intensity;
 		};
 		uniform ripple ripples[MAX_RIPPLES];
+
+		struct shock {
+			float time;
+		};
+		uniform shock shocks[MAX_SHOCKS];
 
 		varying vec3 varPosition;
 
@@ -187,6 +202,15 @@ function rippleVertexShader(shader, params, { maxRipples }) {
 				float attack = min(t, 0.1) * 10.0;
 
 				ripplesAgg += r.intensity * attack * exp(-distSq / 50000.0 - 2.0 * t) * sin(sinVal);
+			}
+
+			for(int i = 0; i < MAX_SHOCKS; i++) {
+				shock s = shocks[i];
+
+				float t = time - s.time;
+				float attack = min(t, 0.1) * 10.0;
+
+				ripplesAgg += 0.0;
 			}
 
 			transformed.z += mainWave - dent - ripplesAgg;
@@ -338,6 +362,9 @@ class VortexComponent extends LitElement {
 		this.burstMode = undefined;
 		this.burstProgress = 0;
 		this.delayGlowChangeBy = 0;
+		this.ripples = undefined;
+		this.currentRippleIdx = 0;
+		this.clock = undefined;
 
 		const renderer = new WebGLRenderer({
 			antialias: true,
@@ -361,17 +388,23 @@ class VortexComponent extends LitElement {
 			cancelAnimationFrame(this._animationId);
 
 		if(this.resizeListener) {
-			window.removeEventListener("resize", this.resizeListener);
+			window.removeEventListener("resize", this.resizeListener, false);
 			this.resizeListener = undefined;
 		}
 
 		if(this.enterListener) {
-			window.removeEventListener(moveEvent, this.enterListener);
+			window.removeEventListener("mouseover", this.enterListener, {
+				passive: true,
+				capture: true
+			});
 			this.enterListener = undefined;
 		}
 
 		if(this.moveListener) {
-			window.removeEventListener(moveEvent, this.moveListener);
+			window.removeEventListener(moveEvent, this.moveListener, {
+				passive: true,
+				capture: true
+			});
 			this.moveListener = undefined;
 		}
 	}
@@ -383,8 +416,8 @@ class VortexComponent extends LitElement {
 		let cursorPosition = null;
 
 		const { scene, mesh, params } = createScene();
-		let currentRippleIdx = 0;
 		const ripples = params.ripples.value;
+		const shocks = params.shocks.value;
 		const bursts = params.bursts.value;
 		let size = getSize();
 		const camera = new PerspectiveCamera(...computeCameraSettings(size), 0.1, 6);
@@ -393,6 +426,8 @@ class VortexComponent extends LitElement {
 		this.renderer.setSize(size.width, size.height);
 		params.size.value = [size.width, size.height];
 
+		this.ripples = ripples;
+		this.shocks = shocks;
 		this.bursts = bursts;
 
 		let initResolve;
@@ -406,6 +441,8 @@ class VortexComponent extends LitElement {
 		// new OrbitControls(camera, this.renderer.domElement); // eslint-disable-line no-new
 
 		const clock = new Clock();
+
+		this.clock = clock;
 
 		const animate = first => {
 			this._animationId = requestAnimationFrame(animate);
@@ -474,13 +511,6 @@ class VortexComponent extends LitElement {
 			params.cursorPosition.value = noCursorPosition;
 		};
 
-		const addRipple = (time, position, intensity) => {
-			ripples[currentRippleIdx] = new Ripple(time, position, intensity);
-
-			if(++currentRippleIdx >= ripples.length)
-				currentRippleIdx = 0;
-		};
-
 		const moveListener = e => {
 			const p = isTouch ? e.touches[0] : e;
 
@@ -488,9 +518,9 @@ class VortexComponent extends LitElement {
 			params.cursorPosition.value = cursorPosition;
 
 			const time = clock.elapsedTime;
-			const prevRippleIdx = currentRippleIdx === 0
+			const prevRippleIdx = this.currentRippleIdx === 0
 				? ripples.length - 1
-				: currentRippleIdx - 1;
+				: this.currentRippleIdx - 1;
 			const prevRipple = ripples[prevRippleIdx];
 
 			const [Δd, Δt] = ripples.length > 0
@@ -498,12 +528,12 @@ class VortexComponent extends LitElement {
 				: [Infinity, Infinity];
 
 			if(Δd >= newRippleMinDistanceSquared && Δt >= newRippleMinDelay)
-				addRipple(time, cursorPosition, Δt > newRippleMaxDelay ? 0 : Math.pow(Δd, 1 / 3) / 500);
+				this.addRipple(time, cursorPosition, Δt > newRippleMaxDelay ? 0 : Math.pow(Δd, 1 / 3) / 500);
 		};
 
 		const enterListener = e => {
 			cursorPosition = new Vector2(e.clientX, e.clientY);
-			addRipple(clock.elapsedTime, cursorPosition, 0);
+			this.addRipple(clock.elapsedTime, cursorPosition, 0);
 		};
 
 		window.addEventListener("resize", resizeListener, false);
@@ -555,6 +585,15 @@ class VortexComponent extends LitElement {
 			burst.setProgress(progress);
 	}
 
+	addRipple(time, position, intensity) {
+		this.ripples[this.currentRippleIdx] = new Ripple(time, position, intensity);
+
+		if(++this.currentRippleIdx >= this.ripples.length)
+			this.currentRippleIdx = 0;
+	}
+
+	addShock() {}
+
 	glowDown(immediate) {
 		const prevBurstMode = this.burstMode;
 
@@ -600,7 +639,7 @@ class VortexComponent extends LitElement {
 	}
 
 	centerShock() {
-		console.log("test");
+		this.addShock();
 	}
 }
 

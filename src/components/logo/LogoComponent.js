@@ -2,6 +2,9 @@ import { LitElement, html, css } from "lit-element";
 
 import logoURL from "./logo.svg";
 
+const isTouch = "ontouchstart" in window || navigator.msMaxTouchPoints > 0;
+const downEvent = isTouch ? "touchstart" : "mousedown";
+
 class LogoComponent extends LitElement {
 	static get styles() {
 		return css`
@@ -33,20 +36,22 @@ class LogoComponent extends LitElement {
 			}
 
 			#logo {
-				display: block;
+				display: flex;
 				position: relative;
 				width: 100%;
 				height: 100%;
 				animation: logoPulse 10s ease-in-out infinite alternate;
 				will-change: transform;
 				overflow: hidden;
-				pointer-events: none;
 				user-select: none;
+				align-items: center;
+				justify-content: center;
 			}
 
 			#front, #back {
 				position: absolute;
 				will-change: transform;
+				pointer-events: none;
 			}
 
 			#front {
@@ -65,16 +70,32 @@ class LogoComponent extends LitElement {
 				opacity: 0.5;
 				animation: logoRotate 20s linear infinite reverse;
 			}
+
+			#hit {
+				position: relative;
+				width: 50%;
+				padding-top: 50%;
+				border-radius: 50%;
+			}
 		`;
 	}
 
 	render() {
 		return html`
 			<div id="logo">
-				<img id="back" src="${logoURL}" alt="">
-				<img id="front" src="${logoURL}" alt="">
+				<img id="back" src="${logoURL}" alt="" draggable="false">
+				<img id="front" src="${logoURL}" alt="" draggable="false">
+				<div id="hit"></div>
 			</div>
 		`;
+	}
+
+	updated() {
+		this.shadowRoot.querySelector("#hit").addEventListener(downEvent, e => this.onDown(e));
+	}
+
+	onDown() {
+		this.dispatchEvent(new CustomEvent("down"));
 	}
 }
 

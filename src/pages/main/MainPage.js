@@ -292,7 +292,7 @@ export default class MainPage extends routed(LitElement) {
 				complete: headComplete
 			})}>
 				<div id="logo-container">
-					<logo-component id="logo" @click=${this.onLogoClick}></logo-component>
+					<logo-component id="logo" @click=${this.onLogoClick} @down=${this.onLogoDown}></logo-component>
 				</div>
 				<h1 id="title">Clemens Damke</h1>
 				<h2 id="error">This is not the page you are looking for.</h2>
@@ -357,6 +357,13 @@ export default class MainPage extends routed(LitElement) {
 	onLogoClick() {
 		if(!this.landingVisible)
 			goHome();
+	}
+
+	onLogoDown() {
+		if(this.headVisible)
+			return;
+
+		this.vortex.centerShock();
 	}
 
 	onExplosionComplete() {
