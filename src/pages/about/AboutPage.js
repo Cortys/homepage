@@ -75,7 +75,7 @@ export default class AboutPage extends ThemedElement {
 				<div id="contact">
 					<iron-icon icon="mail"></iron-icon><span>E-Mail:</span><a href="mailto:Clemens%20Damke<${mail}>">${mail}</a>
 					<iron-icon icon="social-media:github"></iron-icon><span> GitHub:</span><a href="https://github.com/Cortys">Cortys</a>
-					<iron-icon icon="social-media:twitter"></iron-icon><span> Twitter:</span><a href="https://twitter.com/Cortosien">@Cortosien</a>
+					<iron-icon icon="social-media:twitter"></iron-icon><span> Twitter:</span><a href="https://twitter.com/ClemensDamke">@ClemensDamke</a>
 				</div>
 			</div>
 		`;
