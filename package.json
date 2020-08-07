@@ -44,7 +44,7 @@
 		"marked": "1.0.0",
 		"parcel-plugin-markdown": "^0.4.2",
 		"parcel-plugin-webcomponents": "^1.2.3",
-		"prismjs": "^1.20.0",
+		"prismjs": "^1.21.0",
 		"pug": "^2.0.4"
 	},
 	"alias": {
