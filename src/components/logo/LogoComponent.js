@@ -80,6 +80,12 @@ class LogoComponent extends LitElement {
 		`;
 	}
 
+	constructor() {
+		super();
+
+		this.smashAnim = null;
+	}
+
 	render() {
 		return html`
 			<div id="logo">
@@ -96,6 +102,50 @@ class LogoComponent extends LitElement {
 
 	onDown() {
 		this.dispatchEvent(new CustomEvent("down"));
+	}
+
+	smashDown() {
+		let startScale = 1;
+
+		if(this.smashAnim != null) {
+			const transformMatrix = window.getComputedStyle(this).transform;
+
+			if(transformMatrix)
+				startScale = +transformMatrix.match(/\d+(\.\d+)?/)[0] || 1;
+
+			this.smashAnim.cancel();
+		}
+
+		const smashAnim = this.smashAnim = this.animate([{
+			transform: `scale(${startScale})`,
+			easing: "cubic-bezier(0.55, 0, 1, 0.45)"
+		}, {
+			transform: "scale(0.7)"
+		}], {
+			direction: "normal",
+			iterations: 1,
+			duration: 300
+		});
+
+		const backupAnim = smashAnim.finished.then(() => {
+			const anim = this.smashAnim = this.animate([{
+				transform: "scale(0.7)",
+				easing: "cubic-bezier(0, 0.55, 0.45, 1)"
+			}, {
+				transform: "scale(1)"
+			}], {
+				direction: "normal",
+				iterations: 1,
+				duration: 600
+			});
+
+			return anim.finished;
+		}).catch(() => {}).finally(() => this.smashAnim = null);
+
+		return {
+			smash: smashAnim.finished,
+			backup: backupAnim
+		};
 	}
 }
 

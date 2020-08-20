@@ -3,6 +3,7 @@ import {
 	Vector2, Vector3,
 	MeshStandardMaterial,
 	Scene,
+	BufferGeometry,
 	RingGeometry,
 	Mesh,
 	LineSegments,
@@ -36,6 +37,7 @@ const noCursorPosition = new Vector2(-1, -1);
 const isTouch = "ontouchstart" in window || navigator.msMaxTouchPoints > 0;
 const moveEvent = isTouch ? "touchmove" : "mousemove";
 const maxRipples = isTouch ? 32 : 128;
+const maxShocks = 5;
 const burstFrequencies = [0, 2, 4, 5, 7, 13];
 const burstCount = burstFrequencies.length;
 const maxBurstFrequency = Math.max(...burstFrequencies);
@@ -54,14 +56,6 @@ function computeCameraSettings({ width, height }) {
 	};
 }
 
-function createNoise(geometry) {
-	const normalizedIntensity = noiseIntensity / (1 + objectRadius);
-
-	return geometry.vertices.map(
-		v => (1 + v.length()) * Math.random() * normalizedIntensity
-	);
-}
-
 class Ripple {
 	constructor(time = 0, position = new Vector2(0, 0), intensity = 0) {
 		this.time = time;
@@ -71,7 +65,7 @@ class Ripple {
 }
 
 class Shock {
-	constructor(time = 0) {
+	constructor(time = -1) {
 		this.time = time;
 	}
 }
@@ -129,7 +123,7 @@ function createRippleParams({ maxRipples }) {
 			value: Array(maxRipples).fill(new Ripple())
 		},
 		shocks: {
-			value: [new Shock(), new Shock()]
+			value: Array(maxShocks).fill(new Shock())
 		},
 		bursts: {
 			value: burstFrequencies.map(f => new Burst(f))
@@ -143,7 +137,8 @@ function rippleVertexShader(shader, params, { maxRipples }) {
 	const newVertexShader = `
 		#define M_PI 3.1415926535897932384626433832795
 		#define MAX_RIPPLES ${maxRipples}
-		#define MAX_SHOCKS 2
+		#define MAX_SHOCKS ${maxShocks}
+		#define MAX_RADIUS ${objectRadius}
 
 		uniform vec2 size;
 		uniform float time;
@@ -177,43 +172,50 @@ function rippleVertexShader(shader, params, { maxRipples }) {
 			float lenSq = dot(transformed, transformed);
 			float len = sqrt(lenSq);
 
-			float mainWave = waveIntensity
-				/ max(lenSq, 1.0)
-				* sin(len * 6.0 - time * M_PI / 5.0);
+			if(len < MAX_RADIUS) {
+				float mainWave = waveIntensity
+					/ max(lenSq, 1.0)
+					* sin(len * 6.0 - time * M_PI / 5.0);
 
-			float dent;
+				float dent;
 
-			if(cursorPosition.x != -1.0) {
-				vec2 delta = cursorPosition - projected;
-				float cursorDistSq = dot(delta, delta);
-				dent = rippleIntensity * exp(-cursorDistSq / dentNormalize);
+				if(cursorPosition.x != -1.0) {
+					vec2 delta = cursorPosition - projected;
+					float cursorDistSq = dot(delta, delta);
+					dent = rippleIntensity * exp(-cursorDistSq / dentNormalize);
+				}
+				else dent = 0.0;
+
+				float ripplesAgg = 0.0;
+
+				for(int i = 0; i < MAX_RIPPLES; i++) {
+					ripple r = ripples[i];
+					vec2 d = r.position - projected;
+					float distSq = dot(d, d);
+					float dist = sqrt(distSq);
+					float t = time - r.time;
+					float sinVal = dist / 50.0 - t * 20.0;
+					float attack = min(t, 0.01) * 100.0;
+
+					ripplesAgg += r.intensity * attack * exp(-distSq / 50000.0 - 2.0 * t) * sin(sinVal);
+				}
+
+				for(int i = 0; i < MAX_SHOCKS; i++) {
+					shock s = shocks[i];
+
+					if(s.time < 0.0)
+						continue;
+
+					float t = time - s.time;
+					float profilePos = len - t * 2.0;
+					float shockProfile = profilePos > 1.0 ? 0.0 : exp(profilePos);
+					float shockWave = sin(shockProfile * 2.0);
+
+					ripplesAgg += 0.2 * shockProfile * shockWave * shockWave;
+				}
+
+				transformed.z += mainWave - dent - ripplesAgg;
 			}
-			else dent = 0.0;
-
-			float ripplesAgg = 0.0;
-
-			for(int i = 0; i < MAX_RIPPLES; i++) {
-				ripple r = ripples[i];
-				vec2 d = r.position - projected;
-				float distSq = dot(d, d);
-				float dist = sqrt(distSq);
-				float t = time - r.time;
-				float sinVal = dist / 50.0 - t * 20.0;
-				float attack = min(t, 0.1) * 10.0;
-
-				ripplesAgg += r.intensity * attack * exp(-distSq / 50000.0 - 2.0 * t) * sin(sinVal);
-			}
-
-			for(int i = 0; i < MAX_SHOCKS; i++) {
-				shock s = shocks[i];
-
-				float t = time - s.time;
-				float attack = min(t, 0.1) * 10.0;
-
-				ripplesAgg += 0.0;
-			}
-
-			transformed.z += mainWave - dent - ripplesAgg;
 		`)}
 	`;
 
@@ -294,6 +296,22 @@ function createRippleMaterial(config, params, consts) {
 	});
 }
 
+function createSceneGeometry() {
+	const geometry = new RingGeometry(Number.MIN_VALUE, objectRadius, 64, radiusSegments);
+	const axis = new Vector3(0, 0, 1);
+	const normalizedIntensity = noiseIntensity / (1 + objectRadius);
+
+	geometry.vertices.forEach(v => {
+		const l = v.length();
+
+		v.applyAxisAngle(axis, -Math.exp(l ** -0.5));
+		v.z = (1 + l) * Math.random() * normalizedIntensity;
+	});
+	geometry.verticesNeedUpdate = true;
+
+	return geometry;
+}
+
 function createScene() {
 	const scene = new Scene();
 
@@ -313,15 +331,7 @@ function createScene() {
 
 	// Geometry:
 
-	const geometry = new RingGeometry(Number.MIN_VALUE, objectRadius, 64, radiusSegments);
-	const axis = new Vector3(0, 0, 1);
-	const noise = createNoise(geometry);
-
-	geometry.vertices.forEach((v, i) => {
-		v.applyAxisAngle(axis, -Math.exp(v.length() ** -0.5));
-		v.z = noise[i];
-	});
-	geometry.verticesNeedUpdate = true;
+	const geometry = createSceneGeometry();
 
 	const mesh = new Mesh(geometry, material);
 	const wireframe = new LineSegments(geometry, wireMaterial);
@@ -363,7 +373,9 @@ class VortexComponent extends LitElement {
 		this.burstProgress = 0;
 		this.delayGlowChangeBy = 0;
 		this.ripples = undefined;
+		this.shocks = undefined;
 		this.currentRippleIdx = 0;
+		this.currentShockIdx = 0;
 		this.clock = undefined;
 
 		const renderer = new WebGLRenderer({
@@ -437,6 +449,8 @@ class VortexComponent extends LitElement {
 		camera.position.z = cameraZ;
 		camera.position.y = cameraY;
 		camera.lookAt(0, 0, 0);
+
+		this.renderer.compile(scene, camera);
 
 		// new OrbitControls(camera, this.renderer.domElement); // eslint-disable-line no-new
 
@@ -528,7 +542,7 @@ class VortexComponent extends LitElement {
 				: [Infinity, Infinity];
 
 			if(Δd >= newRippleMinDistanceSquared && Δt >= newRippleMinDelay)
-				this.addRipple(time, cursorPosition, Δt > newRippleMaxDelay ? 0 : Math.pow(Δd, 1 / 3) / 500);
+				this.addRipple(time, cursorPosition, Δt > newRippleMaxDelay ? 0 : Math.pow(Δd, 1 / 3) / 1000);
 		};
 
 		const enterListener = e => {
@@ -565,6 +579,7 @@ class VortexComponent extends LitElement {
 				top: 0;
 				left: 0;
 				background-color: var(--white);
+				background-color: #151515;
 			}
 		`;
 	}
@@ -592,7 +607,18 @@ class VortexComponent extends LitElement {
 			this.currentRippleIdx = 0;
 	}
 
-	addShock() {}
+	get lastShock() {
+		const lastShockIdx = this.currentShockIdx - 1;
+
+		return this.shocks[lastShockIdx >= 0 ? lastShockIdx : this.shocks.length - 1];
+	}
+
+	addShock(time) {
+		this.shocks[this.currentShockIdx] = new Shock(time);
+
+		if(++this.currentShockIdx >= this.shocks.length)
+			this.currentShockIdx = 0;
+	}
 
 	glowDown(immediate) {
 		const prevBurstMode = this.burstMode;
@@ -626,20 +652,24 @@ class VortexComponent extends LitElement {
 		return prevBurstMode !== "glowUp";
 	}
 
+	get canExplode() {
+		return this.burstMode !== "explode";
+	}
+
 	explode(immediate) {
 		if(immediate || !this.burstMode)
 			this.setBurstProgress(1);
 
-		const prevBurstMode = this.burstMode;
+		const res = this.canExplode;
 
 		this.burstMode = "explode";
 		this.delayGlowChangeBy = 0;
 
-		return prevBurstMode !== "explode";
+		return res;
 	}
 
 	centerShock() {
-		this.addShock();
+		this.addShock(this.clock.elapsedTime);
 	}
 }
 

@@ -38,6 +38,7 @@ export default class MainPage extends routed(LitElement) {
 
 		this.withVortex = true;
 		this.headComplete = undefined;
+		this.allowSmash = true;
 		this.vortex = document.createElement("vortex-component");
 
 		this.vortex.addEventListener("explosion-complete", () => this.onExplosionComplete());
@@ -61,6 +62,7 @@ export default class MainPage extends routed(LitElement) {
 				color: var(--white);
 				background-color: rgba(21, 21, 21, 0);
 				z-index: 2;
+				/* pointer-events: none; */
 			}
 
 			#head > *, #logo, #page slot {
@@ -309,6 +311,13 @@ export default class MainPage extends routed(LitElement) {
 
 	firstUpdated() {
 		this.headComplete = this.headVisible ? "initialCompletion" : false;
+
+		// Fix missing CSS transform recalc of menu in Safari:
+		if(navigator.userAgent.indexOf("Chrome") === -1 && navigator.userAgent.indexOf("Safari") !== -1) {
+			const menu = this.shadowRoot.querySelector("#menu");
+
+			window.addEventListener("resize", () => menu.style.bottom = menu.style.bottom === "0px" ? "0em" : "0px");
+		}
 	}
 
 	updated() {
@@ -355,15 +364,48 @@ export default class MainPage extends routed(LitElement) {
 	}
 
 	onLogoClick() {
-		if(!this.landingVisible)
+		if(this.errorVisible)
+			this.smashLogo(goHome);
+		else if(!this.landingVisible)
 			goHome();
 	}
 
 	onLogoDown() {
-		if(this.headVisible)
-			return;
+		if(this.landingVisible)
+			this.smashLogo();
+	}
 
-		this.vortex.centerShock();
+	async smashLogo(onSmash = () => {}) {
+		if(!this.allowSmash) {
+			onSmash();
+
+			return;
+		}
+
+		this.allowSmash = false;
+
+		const logo = this.shadowRoot.querySelector("#logo");
+		let onSmashCalled = false;
+
+		try {
+			const { smash, backup } = logo.smashDown();
+
+			await smash;
+			this.allowSmash = true;
+			try {
+				onSmash();
+			}
+			finally {
+				onSmashCalled = true;
+			}
+
+			this.vortex.centerShock();
+			await backup;
+		}
+		finally {
+			if(!onSmashCalled)
+				onSmash();
+		}
 	}
 
 	onExplosionComplete() {

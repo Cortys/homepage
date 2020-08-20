@@ -1,3 +1,4 @@
+import "web-animations-js";
 import smoothscroll from "smoothscroll-polyfill";
 
 import { router } from "./router";
