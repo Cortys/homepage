@@ -3,7 +3,7 @@ import {
 	Vector2, Vector3,
 	MeshStandardMaterial,
 	Scene,
-	BufferGeometry,
+	// BufferGeometry,
 	RingGeometry,
 	Mesh,
 	LineSegments,
@@ -300,14 +300,35 @@ function createSceneGeometry() {
 	const geometry = new RingGeometry(Number.MIN_VALUE, objectRadius, 64, radiusSegments);
 	const axis = new Vector3(0, 0, 1);
 	const normalizedIntensity = noiseIntensity / (1 + objectRadius);
+	const v = new Vector3();
+	const posBuffer = geometry.getAttribute("position");
+	let lastX = NaN;
+	let lastZ = NaN;
 
-	geometry.vertices.forEach(v => {
+	for(let i = 0; i < posBuffer.count; i++) {
+		v.fromBufferAttribute(posBuffer, i);
 		const l = v.length();
+		let z;
 
-		v.applyAxisAngle(axis, -Math.exp(l ** -0.5));
-		v.z = (1 + l) * Math.random() * normalizedIntensity;
-	});
-	geometry.verticesNeedUpdate = true;
+		if(v.x > 0 && v.y > -0.0001 && v.y < 0.0001) {
+			if(v.x === lastX)
+				z = lastZ;
+			else {
+				z = (1 + l) * Math.random() * normalizedIntensity;
+				lastX = v.x;
+				lastZ = z;
+			}
+		}
+		else
+			z = (1 + l) * Math.random() * normalizedIntensity;
+
+		if(l > 0)
+			v.applyAxisAngle(axis, -Math.exp(l ** -0.5));
+
+		posBuffer.setXYZ(
+			i, v.x, v.y, z);
+	}
+	geometry.computeVertexNormals();
 
 	return geometry;
 }
