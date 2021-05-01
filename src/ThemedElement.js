@@ -1,4 +1,4 @@
-import { LitElement, unsafeCSS } from "lit-element";
+import { LitElement, unsafeCSS } from "lit";
 import { theme, prismTheme } from "./styles/theme";
 
 export default class ThemedElement extends LitElement {

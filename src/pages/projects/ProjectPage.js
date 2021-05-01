@@ -1,5 +1,5 @@
-import { html, css } from "lit-element";
-import { unsafeHTML } from "lit-html/directives/unsafe-html";
+import { html, css } from "lit";
+import { unsafeHTML } from "lit/directives/unsafe-html";
 import "@polymer/iron-icon";
 import "@polymer/iron-icons";
 import "@lrnwebcomponents/social-media-icons";

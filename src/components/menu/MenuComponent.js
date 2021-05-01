@@ -1,6 +1,6 @@
 import fs from "fs";
-import { LitElement, html, css, unsafeCSS } from "lit-element";
-import { classMap } from "lit-html/directives/class-map";
+import { LitElement, html, css, unsafeCSS } from "lit";
+import { classMap } from "lit/directives/class-map";
 
 import { menuEntries, router } from "../../router";
 

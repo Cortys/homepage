@@ -1,4 +1,4 @@
-import { html, css } from "lit-element";
+import { html, css } from "lit";
 
 import ThemedElement from "../../ThemedElement";
 import "../../components/project/ProjectComponent";

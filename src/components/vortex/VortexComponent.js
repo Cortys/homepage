@@ -1,20 +1,18 @@
-import { LitElement, html, css } from "lit-element";
-import {
-	Vector2, Vector3,
-	MeshStandardMaterial,
-	Scene,
-	// BufferGeometry,
-	RingGeometry,
-	Mesh,
-	LineSegments,
-	AmbientLight,
-	PointLight,
-	SpotLight,
-	WebGLRenderer,
-	PerspectiveCamera,
-	Clock
-} from "three";
-// import OrbitControls from "three-orbitcontrols";
+import { LitElement, html, css } from "lit";
+import { Vector2 } from "three/src/math/Vector2";
+import { Vector3 } from "three/src/math/Vector3";
+import { MeshStandardMaterial } from "three/src/materials/MeshStandardMaterial";
+import { Scene } from "three/src/scenes/Scene";
+import { RingGeometry } from "three/src/geometries/RingGeometry";
+import { Mesh } from "three/src/objects/Mesh";
+import { LineSegments } from "three/src/objects/LineSegments";
+import { AmbientLight } from "three/src/lights/AmbientLight";
+import { PointLight } from "three/src/lights/PointLight";
+import { SpotLight } from "three/src/lights/SpotLight";
+import { WebGLRenderer } from "three/src/renderers/WebGLRenderer";
+import { PerspectiveCamera } from "three/src/cameras/PerspectiveCamera";
+import { Clock } from "three/src/core/Clock";
+// import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 const objectRadius = 4.5;
 const radiusSegments = 120;// 160;
