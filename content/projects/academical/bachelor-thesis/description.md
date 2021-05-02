@@ -6,6 +6,7 @@ read: https://raw.githubusercontent.com/Cortys/bachelor-thesis/master/thesis/bui
 repo: https://github.com/Cortys/bachelor-thesis
 ---
 
+**Abstract:**
 In this thesis a method for the automated construction of knowledge graphs from natural language communication data (e.g. e-mails) is proposed.
 The proposed method successively transforms a stream of text messages into a knowledge graph.
 It works in two steps:

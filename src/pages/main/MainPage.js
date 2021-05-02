@@ -82,9 +82,22 @@ export default class MainPage extends routed(LitElement) {
 			#logo {
 				min-width: 150px;
 				min-height: 150px;
-				width: 30vw;
-				max-width: 460px;
-				max-height: 80vh;
+			}
+
+			@media (orientation: landscape) {
+				#logo {
+					width: 30vw;
+					max-width: 460px;
+					max-height: 80vh;
+				}
+			}
+
+			@media (orientation: portrait) {
+				#logo {
+					height: 30vh;
+					max-height: 460px;
+					max-width: 80vw;
+				}
 			}
 
 			#title, #error {

@@ -6,6 +6,7 @@ read: https://github.com/Cortys/master-thesis/raw/master/thesis/build/main.pdf
 repo: https://github.com/Cortys/master-thesis
 ---
 
+**Abstract:**
 This thesis describes the research field of graph classification and regression from the perspective of the *learning to aggregate* (LTA) problem.
 It formally characterizes a selection of state-of-the-art graph kernels and *graph neural networks* (GNNs) as instances of LTA.
 Those characterizations are shown to be limited by the way in which they decompose graphs.

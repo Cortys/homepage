@@ -1,5 +1,7 @@
 import { html, css } from "lit";
 import { unsafeHTML } from "lit/directives/unsafe-html";
+import { Utf8 } from "crypto-es/lib/core";
+import { AES } from "crypto-es/lib/aes";
 import "@polymer/iron-icon";
 import "@polymer/iron-icons";
 import "@lrnwebcomponents/social-media-icons";
@@ -32,13 +34,24 @@ const potentialActions = {
 	repo: {
 		label: "Repo",
 		icon: "social-media:github"
+	},
+	blog: {
+		label: "Blog",
+		icon: "description"
+	},
+	unlock: {
+		label: "Unlock Content",
+		icon: "lock-outline"
 	}
 };
+const unlockPrefix = "accept ";
 
 export default class ProjectPage extends ThemedElement {
 	static get properties() {
 		return {
-			location: Object
+			location: Object,
+			unlocking: Boolean,
+			unlockedContent: Object
 		};
 	}
 
@@ -122,7 +135,7 @@ export default class ProjectPage extends ThemedElement {
 				margin: 12px;
 			}
 
-			#actions a {
+			#actions > a, #actions > span {
 				text-decoration: none;
 				margin: 4px;
 			}
@@ -133,6 +146,22 @@ export default class ProjectPage extends ThemedElement {
 				margin: 0;
 				border: 1px solid transparent;
 				transition: 0.05s border-color ease-in-out;
+				color: var(--red);
+				height: 40px;
+			}
+
+			#answer {
+				display: block;
+				box-sizing: border-box;
+				padding: 8px 16px;
+				border: 1px solid var(--beige);
+				border-radius: 3px;
+				height: 40px;
+				outline: none;
+			}
+
+			#answer:focus {
+				border-color: var(--red);
 			}
 
 			#actions paper-button:hover, #actions paper-button.keyboard-focus {
@@ -148,7 +177,16 @@ export default class ProjectPage extends ThemedElement {
 	}
 
 	get project() {
-		return projects.get(this.location.params.id);
+		let project = projects.get(this.location.params.id);
+
+		if(this.unlockedContent != null)
+			project = {
+				...project,
+				...this.unlockedContent,
+				unlock: undefined
+			};
+
+		return project;
 	}
 
 	render() {
@@ -167,10 +205,18 @@ export default class ProjectPage extends ThemedElement {
 					? html`<figure id="mainImg" ?vec=${mainImgPath.endsWith(".svg")}><img src=${mainImgPath} alt=""></figure>`
 					: ""}
 				<div id="actions">
-					${Object.keys(potentialActions)
+					${this.unlocking ? html`
+						<span>${project["unlock-question"]}</span>
+						<span><input type="text" id="answer" @input=${this.checkAnswer}></span>
+					` : Object.keys(potentialActions)
 						.filter(key => project[key])
 						.map(key => {
 							const { label, icon, target, download } = potentialActions[key];
+
+							if(key === "unlock")
+								return html`
+									<span @click=${this.unlockContent}><paper-button><iron-icon icon=${icon}></iron-icon>${label}</paper-button></span>
+								`;
 
 							return html`<a href=${project[key]} target=${target || "_blank"} tabindex="-1" ?download=${download}><paper-button><iron-icon icon=${icon}></iron-icon>${label}</paper-button></a>`;
 						})}
@@ -179,6 +225,12 @@ export default class ProjectPage extends ThemedElement {
 			</div>
 			<foot-component></foot-component>
 		`;
+	}
+
+	updated() {
+		if(this.unlocking) {
+			this.shadowRoot.querySelector("#answer").focus();
+		}
 	}
 
 	onBeforeEnter() {
@@ -204,6 +256,25 @@ export default class ProjectPage extends ThemedElement {
 			window.history.back();
 		else
 			goProjects();
+	}
+
+	unlockContent() {
+		this.unlocking = true;
+	}
+
+	checkAnswer() {
+		const answer = this.shadowRoot.querySelector("#answer").value.trim().toLowerCase();
+
+		try {
+			const decrypted = AES.decrypt(this.project.unlock, answer).toString(Utf8);
+
+			if(!decrypted.startsWith(unlockPrefix))
+				return;
+
+			this.unlocking = false;
+			this.unlockedContent = JSON.parse(decrypted.slice(unlockPrefix.length));
+		}
+		catch(e) {}
 	}
 }
 

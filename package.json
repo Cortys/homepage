@@ -5,6 +5,7 @@
 	"repository": "git+https://github.com/Cortys/homepage.git",
 	"author": "Clemens Damke",
 	"license": "MIT",
+	"private": true,
 	"bugs": {
 		"url": "https://github.com/Cortys/homepage/issues"
 	},
@@ -15,7 +16,8 @@
 		"clean": "rm -rf ./dist ./dist-dev ./.cache",
 		"deploy": "bash ./deploy.sh",
 		"fonts": "rm -rf ./src/fonts/*; google-webfonts < ./fonts.list --out-base-dir ./src/fonts",
-		"lint": "eslint src"
+		"lint": "eslint src",
+		"encrypt": "node encrypt.js"
 	},
 	"dependencies": {
 		"@lrnwebcomponents/social-media-icons": "^3.0.6",
@@ -23,7 +25,8 @@
 		"@polymer/iron-icons": "^3.0.1",
 		"@polymer/paper-button": "^3.0.1",
 		"@polymer/paper-icon-button": "^3.0.2",
-		"@vaadin/router": "^1.7.4",
+		"@vaadin/router": "1.7.3",
+		"crypto-es": "^1.2.7",
 		"lit": "^2.0.0-rc.1",
 		"node-sass": "^5.0.0",
 		"parcel-bundler": "^1.12.5",
@@ -32,12 +35,14 @@
 		"web-animations-js": "^2.3.2"
 	},
 	"devDependencies": {
+		"@types/crypto-js": "^4.0.1",
 		"@types/glob": "^7.1.3",
 		"@types/marked": "^2.0.2",
 		"@types/smoothscroll-polyfill": "^0.3.1",
 		"@types/three": "^0.127.1",
 		"babel-core": "^6.26.3",
 		"babel-preset-env": "^1.7.0",
+		"crypto-js": "^4.0.0",
 		"eslint": "^7.25.0",
 		"eslint-config-cortys": "^2.2.0",
 		"eslint-import-resolver-parcel": "^1.10.6",

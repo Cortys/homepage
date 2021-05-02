@@ -36,3 +36,4 @@ dist-dev
 .ftpconfig
 .ftpignore
 .deployenv
+encrypt_data.json
