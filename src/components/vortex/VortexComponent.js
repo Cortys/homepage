@@ -15,7 +15,7 @@ import { Clock } from "three/src/core/Clock";
 // import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 const objectRadius = 4.5;
-const radiusSegments = 120;// 160;
+const radiusSegments = 120; // 160;
 const cameraZ = 2;
 const cameraY = -0.8;
 const cameraDepth = Math.sqrt(cameraY ** 2 + cameraZ ** 2);
