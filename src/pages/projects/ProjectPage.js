@@ -4,6 +4,7 @@ import { Utf8 } from "crypto-es/lib/core";
 import { AES } from "crypto-es/lib/aes";
 import "@polymer/iron-icon";
 import "@polymer/iron-icons";
+import "@polymer/iron-icons/av-icons";
 import "@lrnwebcomponents/social-media-icons";
 import "@polymer/paper-button";
 import "@polymer/paper-icon-button";
@@ -20,6 +21,10 @@ const potentialActions = {
 	read: {
 		label: "Read",
 		icon: "description"
+	},
+	presentation: {
+		label: "Presentation",
+		icon: "av:movie"
 	},
 	docs: {
 		label: "Docs",

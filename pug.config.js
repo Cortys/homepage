@@ -2,7 +2,7 @@
 
 const path = require("path");
 const fs = require("fs");
-const marked = require("marked");
+const { marked } = require("marked");
 const fm = require("front-matter");
 const glob = require("glob");
 

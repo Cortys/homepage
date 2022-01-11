@@ -3,6 +3,7 @@ name: A Novel Higher-order Weisfeiler-Lehman Graph Convolution
 shortname: Higher-order WL Graph Convolution
 date: "2020-11"
 read: http://proceedings.mlr.press/v129/damke20a.html
+presentation: https://videolectures.net/acml2020_damke20a/
 ---
 This paper is based on results from my [master's thesis](/projects/master-thesis).
 It was published at [ACML 2020](http://www.acml-conf.org/2020/video/paper/damke20a;blank).
