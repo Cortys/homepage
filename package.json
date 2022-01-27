@@ -31,7 +31,7 @@
 		"node-sass": "^7.0.1",
 		"parcel-bundler": "^1.12.5",
 		"smoothscroll-polyfill": "^0.4.4",
-		"three": "^0.136.0",
+		"three": "^0.137.0",
 		"web-animations-js": "^2.3.2"
 	},
 	"devDependencies": {
