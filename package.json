@@ -52,7 +52,7 @@
 		"marked": "4.0.9",
 		"parcel-plugin-markdown": "^0.4.2",
 		"parcel-plugin-webcomponents": "^1.2.5",
-		"prismjs": "^1.26.0",
+		"prismjs": "^1.27.0",
 		"pug": "^3.0.2",
 		"sass": "^1.47.0"
 	},
